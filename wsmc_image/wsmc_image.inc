@@ -182,7 +182,7 @@ function _wsmc_image_retrieve($id) {
 				$img['filename'] = $record->filename;
 				$content = array();
 
-				$content['availableTags'] = image_retrieve_available_tags2($img['id']);
+				$content['availableTags'] = image_retrieve_available_tags($img['id']);
 				$content['tagging'] = image_retrieve_tags($img['id']);
 				$content['segmentation'] = image_retrieve_annotations($img['id']);
 	
@@ -919,7 +919,7 @@ function _wsmc_task_index($collection, $limit, $open){
   		
 	}
 	if(isset($open)){
-		$query=$query."AND I. field_task_status_value=1 ";
+		$query=$query."AND I.field_task_status_value=1 ";
   	}
   	$query=$query." ORDER BY created";  
   	if(isset($limit)){
