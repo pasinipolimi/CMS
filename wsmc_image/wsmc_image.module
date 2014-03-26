@@ -1,0 +1,659 @@
+<?php
+module_load_include('inc', 'wsmc_image', 'wsmc_operations', "wsmc_collection");
+		
+/** Gets a image object by id.
+ *
+ * @param int $id
+ * @return object
+ */
+function wsmc_image_get_image($id) {
+  return db_query('SELECT * FROM {image} WHERE id=:id', array(':id' => $id))
+           ->fetchAll();
+}
+
+/** Writes a image to the database
+ *
+ * @param object $image
+ * @return void
+ */
+function wsmc_image_write_image($image) {
+  $primary_key = !empty($image->id) ? array('id') : NULL;
+  drupal_write_record('image', $image, $primary_key);
+}
+
+/**
+ * Deletes a image from the database.
+ *
+ * @param int $id
+ * @return void
+ */
+function wsmc_image_delete_image($id) {
+  db_query('DELETE FROM {image} WHERE id=:id', array(':id' => $id));
+}
+
+/**
+ * Implementation of hook_services_resources().
+ */
+ 
+function wsmc_image_services_resources() {
+  return array(
+    'collection' => array(
+            
+            'index' => array(
+                  'help' => 'Retrieves a listing of images',
+                  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                  'callback' => '_wsmc_collection_index',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content')
+                  
+                  ),
+            'retrieve' => array(
+                  'help' => 'Retrieves a collection',
+                  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                  'callback' => '_wsmc_collection_retrieve',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                              array(
+                                'name' => 'id',
+                                'type' => 'string',
+                                'description' => 'The id of the collection to get',
+                                'source' => array('path' => 0),
+                                'optional' => FALSE,
+                              )
+                            ),
+                  ),
+            'create' => array(
+                  'help' => 'Creates a collection',
+                  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                  'callback' => '_wsmc_collection_create',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'access arguments append' => FALSE,
+                  'args' => array(
+                                
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Data to save',
+                                  'source' => 'data',
+                                  'optional' => FALSE,
+                                )
+                            ),
+                  ),
+            'update' => array(
+                  'help' => 'Update an image',
+                  'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                  'callback' => '_wsmc_collection_update',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                                array(
+                                  'name' => 'collection_id',
+                                  'type' => 'string',
+                                  'description' => 'The id of the collection to get',
+                                  'source' => array('path' => 0),
+                                  'optional' => FALSE,
+                                ),
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Data to save',
+                                  'source' => 'data',
+                                  'optional' => TRUE,
+                                )
+                          ),
+                  ),
+            'delete' => array(
+                  'help' => 'Deletes a collection',
+                  'file' => array('type' => 'inc', 'module' => 'wsmc_collection', 'name' => 'wsmc_collection'),
+                  'callback' => '_wsmc_collection_delete',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                              array(
+                                'name' => 'nid',
+                                'type' => 'int',
+                                'description' => 'The id of the collection to delete',
+                                'source' => array('path' => '0'),
+                                'optional' => TRUE,
+                              ),
+                          ),
+                   ),
+    ),
+
+    'image' => array(
+            //	RESTITUISCE L'IMMAGINE CON L'ID PASSATO
+            'retrieve' => array(
+                  'help' => 'Retrieves an image',
+                  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                  'callback' => '_wsmc_image_retrieve',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                              array(
+                                'name' => 'id',
+                                'type' => 'string',
+                                'description' => 'The id of the image to get',
+                                'source' => array('path' => 0),
+                                'optional' => FALSE,
+                              )
+                            ),
+                  ),
+                            /**
+            * ATTENZAIONE:
+            * SALVARE IMMAGINI ANCHE TRAMITE POST
+            */
+            'create' => array(
+                  'help' => 'Creates a image',
+                  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                  'callback' => '_wsmc_image_create',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'access arguments append' => FALSE,
+                  'args' => array(
+                                array(
+                                  'name' => 'image_id',
+                                  'type' => 'string',
+                                  'description' => 'The id of the image to get',
+                                  'source' => array('path' => 0),
+                                  'optional' => TRUE,
+                                ),
+                                array(
+                                  'name' => 'operation',
+                                  'type' => 'string',
+                                  'description' => 'The operation',
+                                  'source' => array('path' => 1),
+                                  'optional' => TRUE,
+                                ),
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Data to save',
+                                  'source' => 'data',
+                                  'optional' => FALSE,
+                                )
+                            ),
+                  ),
+            'update' => array(
+                  'help' => 'Update an image',
+                  'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                  'callback' => '_wsmc_image_update',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                                array(
+                                  'name' => 'image_id',
+                                  'type' => 'string',
+                                  'description' => 'The id of the image to get',
+                                  'source' => array('path' => 0),
+                                  'optional' => FALSE,
+                                ),
+                                array(
+                                  'name' => 'operation',
+                                  'type' => 'string',
+                                  'description' => 'The operation',
+                                  'source' => array('path' => 1),
+                                  'optional' => TRUE,
+                                ),
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Data to save',
+                                  'source' => 'data',
+                                  'optional' => TRUE,
+                                )
+                          ),
+                  ),
+            'delete' => array(
+                  'help' => 'Deletes a image',
+                  'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                  'callback' => '_wsmc_image_delete',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                              array(
+                                'name' => 'nid',
+                                'type' => 'int',
+                                'description' => 'The id of the image to delete',
+                                'source' => array('path' => '0'),
+                                'optional' => TRUE,
+                              ),
+                          ),
+                   ),
+            //OK, RESTITUISCE L'ELENCO DI TUTTE LE IMMAGINI PRESENTI NEL SISTEMA
+            'index' => array(
+                  'help' => 'Retrieves a listing of images',
+                  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                  'callback' => '_wsmc_image_index_light',
+                  'access callback' => 'user_access',
+                  'access arguments' => array('access content'),
+                  'args' => array(
+                              
+                              array(
+                                'name' => 'collection',
+                                'type' => 'string',
+                                'description' => 'The id of the collection to get',
+                                'source' => array('param' => 'collection'),
+                                'optional' => TRUE,
+                              ),
+                              array(
+                                'name' => 'limit',
+                                'type' => 'int',
+                                'description' => 'The number of images to return',
+                                'source' => array('param' => 'limit'),
+                                'optional' => TRUE,
+                              ),
+                              array(
+                                'name' => 'select',
+                                'type' => 'string',
+                                'description' => 'all: returns all the attributes; id: returns a list of id',
+                                'source' => array('param' => 'select'),
+                                'optional' => TRUE,
+                              ),
+                            ),
+                  ),
+    ),
+    
+
+    'session' => array(
+              'retrieve' => array(
+                    'help' => 'Retrieves a session',
+                    'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                    'callback' => '_wsmc_session_retrieve',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    'args' => array(
+                                array(
+                                  'name' => 'id_session',
+                                  'type' => 'int',
+                                  'description' => 'Get a new session',
+                                  'source' => array('path' => 0),
+                                  'optional' => FALSE,
+                                ),
+                            ),
+                    ),
+              'create' => array(
+                    'help' => 'Creates a session',
+                    'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                    'callback' => '_wsmc_session_create',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    'args' => array(
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Get a new session',
+                                  'source' => 'data',
+                                  'optional' => TRUE,
+                                ),
+                            ),
+                    ),      
+              'update' => array(
+                    'help' => 'Update a session',
+                    'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                    'callback' => '_wsmc_session_update',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    'args' => array(
+                                array(
+                                  'name' => 'session_id',
+                                  'type' => 'string',
+                                  'description' => 'The id of the session to get',
+                                  'source' => array('path' => 0),
+                                  'optional' => FALSE,
+                                ),
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Data to save',
+                                  'source' => 'data',
+                                  'optional' => TRUE,
+                                )
+                            ),
+                    ),
+              'index' => array(
+                    'help' => 'Retrieves a listing of sessions',
+                    'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                    'callback' => '_wsmc_session_index',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    ),
+      ),
+      
+      'task' => array(
+              'retrieve' => array(
+                    'help' => 'Retrieves an range value',
+                    'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                    'callback' => '_wsmc_task_retrieve',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    'args' => array(
+                                array(
+                                  'name' => 'id_task',
+                                  'type' => 'int',
+                                  'description' => 'The id of the task to update',
+                                  'source' => array('path' => '0'),
+                                  'optional' => FALSE,
+                                )
+                                
+                            ),
+                    ),
+              'create' => array(
+                    'help' => 'Creates a task',
+                    'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                    'callback' => '_wsmc_task_create',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    'args' => array(
+                                array(
+                                  'name' => 'data',
+                                  'type' => 'struct',
+                                  'description' => 'The note object',
+                                  'source' => 'data',
+                                  'optional' => FALSE,
+                                ),
+                            ),
+                    ),
+              'update' => array(
+                      'help' => 'Update a session',
+                      'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                      'callback' => '_wsmc_task_update',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_task',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                  array(
+                                    'name' => 'close',
+                                    'type' => 'string',
+                                    'description' => 'Status of the task',
+                                    'source' => array('path' => '1'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                    ),
+              'index' => array(
+                      'help' => 'Retrieves a listing of ranges',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_task_index',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'collection',
+                                    'type' => 'string',
+                                    'description' => 'The id of the collection',
+                                    'source' => array('param' => 'collection'),
+                                    'optional' => TRUE,
+                                  ),
+                                  array(
+                                    'name' => 'limit',
+                                    'type' => 'string',
+                                    'description' => 'Max number of tasks to return',
+                                    'source' => array('param' => 'limit'),
+                                    'optional' => TRUE,
+                                  ),
+                                  array(
+                                    'name' => 'open',
+                                    'type' => 'boolean',
+                                    'description' => 'If true the function only returns open tasks',
+                                    'source' => array('param' => 'open'),
+                                    'optional' => TRUE,
+                                  )
+                                )
+                    ),
+      ),
+                      
+    'utask' => array(
+              'retrieve' => array(
+                      'help' => 'Retrieves an range value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_utask_retrieve',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_content',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+              'create' => array(
+                      'help' => 'Creates a task',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_utask_create',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'data',
+                                    'type' => 'struct',
+                                    'description' => 'The note object',
+                                    'source' => 'data',
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+              'update' => array(
+                      'help' => 'Update a utask',
+                      'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                      'callback' => '_wsmc_utask_update',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_utask',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                  array(
+                                    'name' => 'id_action',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '1'),
+                                    'optional' => FALSE,
+                                  ),
+                                  array(
+                                    'name' => 'close',
+                                    'type' => 'string',
+                                    'description' => 'Status of the task',
+                                    'source' => array('path' => '2'),
+                                    'optional' => FALSE,
+                                  ),
+                              ),
+                      ),
+      ),
+      'content' => array(
+              'retrieve' => array(
+                      'help' => 'Retrieves a content value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_content_retrieve',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_content',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                              ),
+                      ),
+              'index' => array(
+                      'help' => 'Retrieves a listing of contents',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_content_index',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      ),
+      ),
+      'textAnnotation' => array(
+              'retrieve' => array(
+                      'help' => 'Retrieves a content value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_textAnnotation_retrieve',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_textAnnotation',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+              'index' => array(
+                      'help' => 'Retrieves a listing of contents',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_textAnnotation_index',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      ),
+      ),
+
+     'polylineDescription' => array(
+              'retrieve' => array(
+                      'help' => 'Retrieves a content value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_polylinedescription_retrieve',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_polylinedescription',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+              'index' => array(
+                      'help' => 'Retrieves a listing of contents',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_polylinedescription_index',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      ),
+      ),
+     'action' => array(
+              'retrieve' => array(
+                      'help' => 'Retrieves a content value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_action_retrieve',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_action',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+              'index' => array(
+                      'help' => 'Retrieves a listing of contents',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_action_index',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      ),
+              'create' => array(
+                      'help' => 'Creates a action',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_action_create',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'dati',
+                                    'type' => 'array',
+                                    'description' => 'Get a new action',
+                                    'source' => 'data',
+                                    'optional' => TRUE,
+                                  ),
+                                ),
+                      ),   
+              'update' => array(
+                      'help' => 'Update a action',
+                      'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                      'callback' => '_wsmc_action_update',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_action',
+                                    'type' => 'int',
+                                    'description' => 'The id of the action to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                  array(
+                                    'name' => 'dati',
+                                    'type' => 'array',
+                                    'description' => 'Data to save',
+                                    'source' => 'data',
+                                    'optional' => TRUE,
+                                  ),
+                              ),
+                      ),                                          
+      ),  
+     'cubrikuser' => array(
+              'retrieve' => array(
+                      'help' => 'Retrieves a content value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_cubrikuser_retrieve',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_application',
+                                    'type' => 'string',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                  array(
+                                    'name' => 'id_user',
+                                    'type' => 'string',
+                                    'description' => 'The id of the user to retrieve',
+                                    'source' => array('path' => '1'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+              'index' => array(
+                      'help' => 'Retrieves a content value',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_cubrikuser_index',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'id_application',
+                                    'type' => 'string',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '0'),
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),                                                    
+            ),                           
+  );
+}

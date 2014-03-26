@@ -1,0 +1,8 @@
+name = WebService for Image Content
+description = Sample resource implementation
+package = WSMC
+
+core = 7.x
+
+files[] = wsmc_image.inc
+files[] = wsmc_image.module
