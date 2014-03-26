@@ -4,35 +4,57 @@
 /*
  *          MANTAINED FUNCTIONS
  * 
- *  session_verify()            changed
- *  _wsmc_retrieve_index()       changed
- *  print_session_data()        changed
- *  require_fields()            added
- *  verify_node_type()          added
- * 	save_tagging()				deleted
- *  save_segmentation()			changed
- *  get_content_type()          added then deleted
- *  insert_new_annotation()     added
- *  verify_language()           confirmed
- *  create_new_node()           confirmed
- *  create_action()				added 
- *  get_annotation_id()			added
- * 
- *  print_image_data()			working     -- to review
- *  print_description()			deleted     
- *  get_tree()                  working     -- to review
- *  print_language_data()		changed
- *  add_new_content()           added
- *  print_image_content()       working
- * 
- * 
- *  bisogna creare una funzione che stampa le content 
- *  poi una funzione che stampa le img trovando tutti i dati dei content
- * 
- * 
- * da cambiare le action... non devono puntare a solo un point e solo un annotation ma ad array di point e array di actions
- * 
- * print_user_data -- da aggiustare
+ _wsmc_image_create ok
+_wsmc_image_update ok
+_wsmc_image_retrieve ok, aggiungere i tag
+_wsmc_image_delete ok (devo cancellare in cascata le annotazioni attaccate??)
+_wsmc_image_index ok
+_wsmc_image_index_light ok, aggiungere i tag
+
+_wsmc_image_access non utilizzata?? ok
+
+save_annotation ok
+save_segmentation ok
+save_mediasegment ok
+
+_wsmc_task_create status chiuso all'inizio, per i utask è un problema?
+_wsmc_task_update  verificare che funzioni, impostare il trigger per impostare come chiusi tutti i utask associati
+_wsmc_task_index ok
+_wsmc_task_retrieve ok
+
+_wsmc_utask_create c'è un node_load, to fix
+_wsmc_utask_update c'è un node_load, to fix
+_wsmc_utask_retrieve c'è un node_load, to fix
+
+_wsmc_content_index richiama la retrive che ha NL
+_wsmc_content_retrieve c'è un node_load ma va lasciato per forza, non lo usiamo se non per la tag che però abbiamo cancellato
+
+_wsmc_textAnnotation_index richiama la retrive che ha NL
+_wsmc_textAnnotation_retrieve c'è NL, to fix
+
+_wsmc_polylinedescription_index richiama la retrive che ha NL
+_wsmc_polylinedescription_retrieve c'è NL, to fix
+
+_wsmc_action_index richiama la retrive che ha NL 
+_wsmc_action_retrieve c'è NL, to fix
+_wsmc_action_create ok
+_wsmc_action_update ok
+
+_wsmc_session_index ok
+_wsmc_session_retrieve 
+_wsmc_session_create ok
+_wsmc_session_update c'è un verify strano, update da fare a mano, tirgger per cambiare il titolo
+
+_wsmc_cubrikuser_retrieve secondo me non funziona la query... chi lo chiama??
+_wsmc_cubrikuser_index secondo me non funziona la query... chi lo chiama??
+
+
+_wsmc_collection_create ok
+_wsmc_collection_retrieve_images ok
+_wsmc_collection_retrieve_tasks ok
+_wsmc_collection_retrieve ok
+_wsmc_collection_index ok
+_wsmc_collection_delete ok
  * 
  * */
 
