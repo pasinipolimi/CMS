@@ -1,16 +1,48 @@
 <?php
 
 
-/********************************************************************************
- * 					FUNCTIONAL
- * *****************************************************************************/ 
 
 
+/* STATUS
+
+print_user_data  usata da _wsmc_action_retrieve, da eliminare in futuro
+print_language_data  usata da _wsmc_textAnnotation_retrieve
+verify_language  usata da save_annotation  save_segmentation
+print_error_string ok
+create_new_node ok
+require_fields ok
+verify_node_type ok
+get_annotation_id ok
+add_new_content c'è un NL per modificare il titolo... mah
+insert_new_annotation svae_seg/ann c'è un NL per modificare il titolo... mah
+create_action c'è un NL per aggiormare la sessione ma boh
+insert_point  save_segmentation c'è un NL per aggiormare la sessione ma boh
+retrieveUTaskByTaskId ok
+retrieveUTaskDataByTaskId non usata ma 'era per un modtivo
+verify_cubrik_user mah
+process_cubrik_user mah
+insert_cubrik_user mah
+get_consumer_by_key mah
+
+session_retrieve_users ok
+session_retrieve_actions ok
+session_verify ok
+image_retrieve_available_tags ok
+image_retrieve_tags ok
+image_retrieve_annotations ok
+task_retrieve_images ok
+image_exist ok
+task_exist ok
+_wsmc_quality_retrieve ok
+
+*/
 
 
 
  
-
+/********************************************************************************
+ *          FUNCTIONAL
+ * *****************************************************************************/ 
 
 
 
@@ -279,17 +311,17 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     $node->field_content_point['und'] = $points;
       
     $node->field_content_image['und'][0]['nid'] = $img_id;
-	
-	//$node->field_content_id['und'][0]['value'] = $content_id;
+
+    //$node->field_content_id['und'][0]['value'] = $content_id;
         
     node_save($node);
     
     $node = node_load($node->nid);
     // stamp the title
     $node->title = 'Content '.$node->nid.' ( '.$content_type.' )';
-	
-	// if no content_id was found update it from 1 to actual nid
-	if($content_id==1) $node->field_content_id['und'][0]['value'] = $node->nid;
+
+    // if no content_id was found update it from 1 to actual nid
+    if($content_id==1) $node->field_content_id['und'][0]['value'] = $node->nid;
 	
     node_save($node);  
     
@@ -377,27 +409,27 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     // add the point id
     $node->field_action_point_id['und'] = $points;			        
       
-	// add the startts value
-	$node->field_action_startts_val['und'][0]['value'] = $timestamp;
+    // add the startts value
+    $node->field_action_startts_val['und'][0]['value'] = $timestamp;
 	
-	// add the endts value
+    // add the endts value
     $node->field_action_endts_val['und'][0]['value'] = time();  
 	  
     node_save($node);
     
     $node = node_load($node->nid);
-	$action_id = $node->nid;
+    $action_id = $node->nid;
     // stampo il title
     $node->title = 'Action '.$node->nid;
     node_save($node);  
     
-	// riferimento della action dentro la session
+    // riferimento della action dentro la session
 	
-	$session_node = node_load($session_id);
-	$session_node->field_session_actions['und'][]['nid']=$action_id;
+    $session_node = node_load($session_id);
+    $session_node->field_session_actions['und'][]['nid']=$action_id;
 
-	// update user list	
-	update_session_user_list($session_id,$user_id);
+    // update user list	
+    update_session_user_list($session_id,$user_id);
 	
     return $node; 	
  }
@@ -624,13 +656,13 @@ function session_retrieve_actions($id){
 	{		
     	$outputa['id'] = $action->action_id;
     	$outputa['startTs'] = $action->start;
-		$outputa['endTs'] = $action->end;    
-		$outputa['type'] = $action->type;    
-		$outputa['user'] = $action->user;
-		$outputa['contentid'] = $action->content;
-		$outputa['imageid'] = $action->image;
-		$outputa['quality'] = _wsmc_quality_retrieve(1);
-		$output['actions'][] = $outputa;	
+		  $outputa['endTs'] = $action->end;    
+		  $outputa['type'] = $action->type;    
+		  $outputa['user'] = $action->user;
+		  $outputa['contentid'] = $action->content;
+		  $outputa['imageid'] = $action->image;
+		  $outputa['quality'] = _wsmc_quality_retrieve(1);
+		  $output['actions'][] = $outputa;	
 	}	
 	return $output;
 }

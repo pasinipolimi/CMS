@@ -6,10 +6,10 @@
  * 
  _wsmc_image_create ok
 _wsmc_image_update ok
-_wsmc_image_retrieve ok, aggiungere i tag
-_wsmc_image_delete ok (devo cancellare in cascata le annotazioni attaccate??)
+_wsmc_image_retrieve ok
+_wsmc_image_delete ok (bisogna cancellare in cascata le annotazioni attaccate?? parliamone)
 _wsmc_image_index ok
-_wsmc_image_index_light ok, aggiungere i tag
+_wsmc_image_index_light ok
 
 _wsmc_image_access non utilizzata?? ok
 
@@ -17,8 +17,8 @@ save_annotation ok
 save_segmentation ok
 save_mediasegment ok
 
-_wsmc_task_create status chiuso all'inizio, per i utask è un problema?
-_wsmc_task_update  verificare che funzioni, impostare il trigger per impostare come chiusi tutti i utask associati
+_wsmc_task_create ok
+_wsmc_task_update  impostare il trigger per impostare come chiusi tutti i utask associati
 _wsmc_task_index ok
 _wsmc_task_retrieve ok
 
@@ -26,8 +26,8 @@ _wsmc_utask_create c'è un node_load, to fix
 _wsmc_utask_update c'è un node_load, to fix
 _wsmc_utask_retrieve c'è un node_load, to fix
 
-_wsmc_content_index richiama la retrive che ha NL
-_wsmc_content_retrieve c'è un node_load ma va lasciato per forza, non lo usiamo se non per la tag che però abbiamo cancellato
+_wsmc_content_index ok
+_wsmc_content_retrieve c'è un node_load ok
 
 _wsmc_textAnnotation_index richiama la retrive che ha NL
 _wsmc_textAnnotation_retrieve c'è NL, to fix
@@ -43,10 +43,10 @@ _wsmc_action_update ok
 _wsmc_session_index ok
 _wsmc_session_retrieve 
 _wsmc_session_create ok
-_wsmc_session_update c'è un verify strano, update da fare a mano, tirgger per cambiare il titolo
+_wsmc_session_update  update da fare tramite SQL UPDATE
 
-_wsmc_cubrikuser_retrieve secondo me non funziona la query... chi lo chiama??
-_wsmc_cubrikuser_index secondo me non funziona la query... chi lo chiama??
+_wsmc_cubrikuser_retrieve secondo me non funziona la query... chi lo chiama?? ignoriamo per ora
+_wsmc_cubrikuser_index secondo me non funziona la query... chi lo chiama?? ignoriamo per ora
 
 
 _wsmc_collection_create ok
@@ -1562,6 +1562,8 @@ function _wsmc_session_create($dati) {
 	// associo l'applicazion
 	$node->field_session_application_id['und'][0]['value'] = $app_id;
 
+    node_save($node);
+	$node = node_load($session_id);
 	$node->title = 'Session '.$node->nid.' (open)';	
 	node_save($node);
 			
