@@ -153,13 +153,13 @@ function _wsmc_image_update($image_id, $operation, $node) {
   	global $user;
 	switch ($operation){
 		case 'segmentation':
+		
 			$output = save_segmentation($image_id, $node);
-			
-			
 			break;
 		case 'textAnnotation':
 			
 			$output = save_annotation($image_id, $node);
+			return $output;
 			break;
 			
 		case 'polylineDescription':
@@ -386,11 +386,14 @@ function _wsmc_image_access($op, $args) {
 
 function save_annotation($image_id = NULL, $node)
 {
-    $app_details = get_consumer_by_key($node['oauth_consumer_key']);
+    
+	$app_details = get_consumer_by_key($node['oauth_consumer_key']);
+	
     $app_id = $app_details['id'];
 	// il tag puo essere passato come id o come valore
 	$ta_val = $node['ta_val'];
 	$ta_id = $node['ta_id'];
+	
 	
 	$ta_name = $node['ta_name'];
 	
@@ -419,7 +422,7 @@ function save_annotation($image_id = NULL, $node)
 
     $array = array('ta', 'ta_name', 'content_type', 'language', 'user_id', 'session_id','image_id','oauth_consumer_key');  //  required fields names
     $fields_to_ceck = implode(",", $array);
-
+	
     $fields_values = array(         // required fields values
             'ta_val' => $ta_val,
             'ta_id' => $ta_id,
@@ -430,7 +433,7 @@ function save_annotation($image_id = NULL, $node)
             'session_id' => $session_id,
             'image_id'=>$image_id,
             'oauth_consumer_key' => $node['oauth_consumer_key']);
-
+	
     $verified = require_fields($fields_to_ceck,$fields_values);
 
     if($verified):  // if at least one field value is missing we throw an error
@@ -448,10 +451,11 @@ function save_annotation($image_id = NULL, $node)
     $cubrik_user_id = process_cubrik_user($app_id,$user_id);
     	
 	//verify the session id
-    if(!verify_node_type($session_id,'session')):
+/*    if(!verify_node_type($session_id,'session')):
         $output['error'] = t(print_error_string('not_valid','session id',$session_id));
         return $output;
     endif;
+
 
     
 	$control = session_verify($session_id);
@@ -460,6 +464,7 @@ function save_annotation($image_id = NULL, $node)
 		$output['error'] = $control;
 		return $output;
 	endif; 
+	*/	
 
 	//verify the user id
  /*   if(!verify_node_type($user_id,'user')):
@@ -469,7 +474,7 @@ function save_annotation($image_id = NULL, $node)
 */
     //verify language value
     $language_id = verify_language($lang_code);
-
+	
 
     if($language_id==0): 
         $output['error'] = t(print_error_string('not_valid','language code',$lang_code));
@@ -477,12 +482,13 @@ function save_annotation($image_id = NULL, $node)
     endif;
 
     //verify if the image is an image
-     
+/*   
     if(!verify_node_type($image_id,'image')):
+
         $output['error'] = t(print_error_string('not_valid','image id',$image_id));
         return $output;
     endif;	
-
+*/
 
 	// control the ta_id
 	
@@ -494,8 +500,8 @@ function save_annotation($image_id = NULL, $node)
     	if($ta_id==0) $ta_id = insert_new_annotation($ta_val,$language_id,$ta_name);
     
 	endif;
-
-
+	
+/*
 	// verify the ta_id
 	if(!empty($ta_id)):
         if(!verify_node_type($ta_id,'textannotation')):
@@ -503,9 +509,10 @@ function save_annotation($image_id = NULL, $node)
             return $output;
         endif;	
     endif;
+*/
+
 	
-	
-	// add new tag content to contents
+	//add new tag content to contents
     $content_id = add_new_content($content_type,$image_id,$ta_id);
 
     $content = node_load($content_id);
@@ -643,7 +650,6 @@ function save_segmentation($image_id = NULL, $node){
 		$ta_id = get_annotation_id($ta_val,$ta_name,$language_id);
 		// if the value was not found we insert a new annotation
     	if($ta_id==0) $ta_id = insert_new_annotation($ta_val,$language_id,$ta_name);
-    
 	endif;
 
 
@@ -890,7 +896,7 @@ function _wsmc_task_update($id_task, $close){
   	//Verifico l'id del task
   	if(is_numeric($id_task)){
 
-  		$result=db_query('SELECT field_task_status_value AS STATUS , entity_id AS task_id
+  		$result=db_query('SELECT field_task_status_value AS status , entity_id AS task_id
 				FROM {field_data_field_task_status} WHERE entity_id= :id', array(':id' => $id_task));
     	foreach($result AS $key){
     		$task=$key;
@@ -1049,7 +1055,7 @@ function _wsmc_utask_create($data){
     //Nel caso in cui non ci siano errori salvo il nodo
     if(!$errore){
       $node_type = 'utask';
-      $title = $data['taskType'];
+      //$title = $data['taskType'];
       $other_fields['field_task_status']['und'][0]['value'] = $data['status'] == 'close' ? 0 : 1;
       if(!empty($data['order'])) $other_fields['field_utask_order']['und'][0]['value'] = $data['order'];
       if(!empty($data['action'])) $other_fields['field_utask_action']['und'][0]['nid'] = $data['action'];
@@ -1157,11 +1163,14 @@ function _wsmc_utask_update($id_utask, $id_action, $close){
         break;
     }
   }else{
-   $utask->field_utask_status['und'][0]['value'] = 0;
-   $utask->field_utask_action['und'][0]['nid'] = $id_action;
-   node_save($utask);
+   //$utask->field_utask_status['und'][0]['value'] = 0;
+   //$utask->field_utask_action['und'][0]['nid'] = $id_action;
+   //node_save($utask);
+   
+   $res=db_query('UPDATE {field_data_field_utask_status} SET field_utask_status_value=0 WHERE entity_id= :id', array(':id' => $id_utask));
+   
    if(empty($utask->nid)){
-     $output['error'] = t('Error saving, contact service administrator');
+     //$output['error'] = t('Error saving, contact service administrator');
    }else{
      $output[] = t('uTask properly closed');
    }
@@ -1213,13 +1222,17 @@ function _wsmc_utask_retrieve($id_utask){
  {
     $content = node_load($id_content);
     $output['id'] = $id_content;
-    $output['name'] = $content->field_content_name['und'][0]['value'];
-    
+    $output['name'] = $content->field_content_name['und'][0]['value'];				
+    $result = db_query('SELECT f.field_content_valid_value AS valid FROM {field_data_field_content_valid} f WHERE f.entity_id = :contentid', array(':contentid' => $id_content));
+	foreach ($result as $record) {
+		$output['valid'] = $record->valid;
+	}
+
 	// load annotations
 	$annotations = $content->field_content_textannotation['und'];
 	foreach ($annotations as $key => $annotation)
 		{
-					
+			
 			$output['itemAnnotations'][] = _wsmc_textAnnotation_retrieve($annotation['nid']);
 			
 		}
@@ -1234,6 +1247,44 @@ function _wsmc_utask_retrieve($id_utask){
 	
 	return $output;
  }
+ 
+ function _wsmc_content_update($id_content, $invalidate){
+  	
+  	//Verifico l'id del content
+  	if(is_numeric($id_content)){
+
+  		$result=db_query('SELECT field_content_valid_value AS status , entity_id AS content_id
+				FROM {field_data_field_content_valid} WHERE entity_id= :id', array(':id' => $id_content));
+    	foreach($result AS $key){
+    		$task=$key;
+    	}
+
+    	if(! isset($task)){
+      		$output['error'] = t(print_error_string('not_valid','id content'));
+      		return $output;
+    	}else{
+      		//Se il content è già not valid imposto l'errore
+      		if($task->status == 0)  {
+      			$output['error'] = t('Content already invalidated');
+      			return $output;
+      		};
+    	}
+  	}else{
+    	$output['error'] = t(print_error_string('not_valid','id content'));
+    	return $output;
+  	}
+
+ 	//Verifico che la stringa passata sia invalidate
+  	if($invalidate != 'invalidate') {
+  		$output['error'] = t(print_error_string('not_valid','invalidate'));
+  		return $output;
+  	}
+  	
+  	$res=db_query('UPDATE {field_data_field_content_valid} SET field_content_valid_value=0 WHERE entity_id= :id', array(':id' => $id_content));
+   	$output[] = t('Content properly invalidated');
+    
+  	return $output;
+}
 
 
  
@@ -1563,9 +1614,7 @@ function _wsmc_session_create($dati) {
 	$node->field_session_application_id['und'][0]['value'] = $app_id;
 
     node_save($node);
-	$node = node_load($session_id);
-	$node->title = 'Session '.$node->nid.' (open)';	
-	node_save($node);
+	
 			
 	return $node->nid;
 }
@@ -1582,7 +1631,7 @@ function _wsmc_session_update($session_id, $node) {
 
 	$state = $node['state'];
 
-
+	
     $array = array('state', 'session_id');  //  required fields names
     $fields_to_ceck = implode(",", $array);
 
@@ -1599,26 +1648,23 @@ function _wsmc_session_update($session_id, $node) {
     endif;
 
     // verify if session is open
-    $control = session_verify($session_id);
+    //$control = session_verify($session_id);
 
     if($control!=1):
-        $output['error'] = $control;
-        return $output;
+        //$output['error'] = $control;
+        //return $output;
     endif;  
 	
 	$session_node = node_load($session_id);
 	// if we want to update the session from closed to opened
 	if($state):
-	
 		$session_node->field_session_endts['und'][0]['value'] = NULL;	
-		$session_node->title = 'Session '.$session_node->nid.' (open)';
 		$result = 'opened';
 	endif;
 
-	// if we want to update the session from closed to opened
+	// if we want to update the session from opened to closed
 	if(!$state):
 		$session_node->field_session_endts['und'][0]['value'] = time();	
-		$session_node->title = 'Session '.$session_node->nid.' (closed)';
 		$result = 'closed';
 	endif;
 

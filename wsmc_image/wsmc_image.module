@@ -498,6 +498,29 @@ function wsmc_image_services_resources() {
                       'access callback' => 'user_access',
                       'access arguments' => array('access content'),
                       ),
+			  'update' => array(
+						'help' => 'Update a Content',
+						'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+						'callback' => '_wsmc_content_update',
+						'access callback' => 'user_access',
+						'access arguments' => array('access content'),
+						'args' => array(
+									array(
+									  'name' => 'id_content',
+									  'type' => 'int',
+									  'description' => 'The id of the content to update',
+									  'source' => array('path' => 0),
+									  'optional' => FALSE,
+									),
+									array(
+										'name' => 'invalidate',
+										'type' => 'string',
+										'description' => 'Status of the text annotation',
+										'source' => array('path' => '1'),
+										'optional' => FALSE,
+									  ),
+								),
+						),
       ),
       'textAnnotation' => array(
               'retrieve' => array(
@@ -522,9 +545,8 @@ function wsmc_image_services_resources() {
                       'callback' => '_wsmc_textAnnotation_index',
                       'access callback' => 'user_access',
                       'access arguments' => array('access content'),
-                      ),
+                      ),		  
       ),
-
      'polylineDescription' => array(
               'retrieve' => array(
                       'help' => 'Retrieves a content value',

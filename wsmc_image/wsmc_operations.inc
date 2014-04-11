@@ -313,6 +313,8 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     $node->field_content_image['und'][0]['nid'] = $img_id;
 
     //$node->field_content_id['und'][0]['value'] = $content_id;
+	
+	$node->field_content_valid['und'][0]['value'] = 1;
         
     node_save($node);
     
@@ -347,6 +349,9 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     $node->field_annotation_value['und'][0]['value'] = $value;
     
     $node->field_annotation_name['und'][0]['value'] = $annotation_name;
+	
+	//imposto di default l'annotazione come valida quando viene creata
+	//$node->field_annotation_valid['und'][0]['value'] = 1;
     
     // add the content id
     //$node->field_annotation_content['und'][0]['nid'] = $content_id;
@@ -700,10 +705,11 @@ function image_retrieve_available_tags($id){
 		FROM {field_data_field_content_name} as C 
 		JOIN {field_data_field_content_textannotation} as A 
 		JOIN {field_data_field_annotation_value} AS V
+		JOIN {field_data_field_content_valid} AS VA
 		JOIN {annotations} AS ASS
 		JOIN field_data_field_annotation_language AS L
-		ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id
-		WHERE C.field_content_name_value = 'availableTags'AND imageid = :uid", array(':uid' => $id));
+		ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id
+		WHERE C.field_content_name_value = 'availableTags'AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
 
 	$tags = array();
     foreach ($content_query as $content_record) {
