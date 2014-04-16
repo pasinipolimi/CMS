@@ -863,6 +863,7 @@ function _wsmc_task_create($data){
       		$title = $data['taskType'];
       		if(!empty($data['aggregationStrategy'])) $other_fields['field_aggregation_strategy']['und'][0]['value'] = $data['aggregationStrategy'];
       		$other_fields['field_task_status']['und'][0]['value'] = 0;
+			$other_fields['field_task_type']['und'][0]['value'] = $data['taskType'];
       		$new_node = create_new_node($node_type, $title, $other_fields);
       		node_save($new_node);
       		$output = $new_node;
@@ -888,6 +889,7 @@ function _wsmc_task_create($data){
         	break;
     	}
  	}
+	
   return $output;
 }
 
@@ -964,7 +966,8 @@ function _wsmc_task_index($collection, $limit, $open){
 
     	$task_values['image']= task_retrieve_images($record->id);
     
-    	$utask_id = retrieveUTaskByTaskId($record->nid);
+    	$utask_id = retrieveUTaskByTaskId($record->id);
+		$task_values['utasks']= $utask_id;
     
 		$output['task'][] = $task_values;
 		unset($task_values);
@@ -972,27 +975,29 @@ function _wsmc_task_index($collection, $limit, $open){
   	return   $output;
 }
 
+
+
 function _wsmc_task_retrieve($id_task){
+
   	//Verifico l'id del task
   	if(is_numeric($id_task)){
-
-  		$record = db_query('SELECT T.nid As id, T.title as title, I. field_task_status_value AS status FROM {node} AS T
+  		$result = db_query('SELECT T.nid AS id, T.title AS title, I.field_task_status_value AS status, TY.field_task_type_value AS type FROM {node} AS T
 			JOIN {field_data_field_task_status} AS I
-			ON  T.nid=I.entity_id
- 			WHERE T.nid = :id', array(':uid' => $id_task));
-		if(isset($record)){
-	    	$task_values['id'] = $record->nid;
-	    	$task_values['taskType'] = $record->title;
+			JOIN {field_data_field_task_type} AS TY
+			ON  T.nid=I.entity_id AND T.nid=TY.entity_id
+ 			WHERE T.nid = :id', array(':id' => $id_task));
+		foreach ($result as $record){
+	    	$task_values['id'] = $record->id;
+	    	$task_values['taskType'] = $record->type;
     		$task_values['status'] = $record->status;
 
-	    	$task_values['image']= task_retrieve_images($record->nid);
+	    	$task_values['image']= task_retrieve_images($record->id);
     
-    		$utask_id = retrieveUTaskByTaskId($record->nid);
+    		$utask_id = retrieveUTaskByTaskId($record->id);
+			$task_values['utasks']= $utask_id;
     
 			$output['task'][] = $task_values;
 	  		unset($utaskList);
-		} else {
-			$output['error'] = t(print_error_string('not_valid','id task'));
 		}
   	} else {
     	$output['error'] = t(print_error_string('not_valid','id task'));
@@ -1055,7 +1060,7 @@ function _wsmc_utask_create($data){
     //Nel caso in cui non ci siano errori salvo il nodo
     if(!$errore){
       $node_type = 'utask';
-      //$title = $data['taskType'];
+      $title = $data['taskType'];
       $other_fields['field_task_status']['und'][0]['value'] = $data['status'] == 'close' ? 0 : 1;
       if(!empty($data['order'])) $other_fields['field_utask_order']['und'][0]['value'] = $data['order'];
       if(!empty($data['action'])) $other_fields['field_utask_action']['und'][0]['nid'] = $data['action'];
@@ -1604,7 +1609,8 @@ function _wsmc_session_create($dati) {
     endif;
         
 	// creo il nuovo nodo
-	$node = create_new_node('session');
+	
+	$node = create_new_node('session', 'Session');
 
 	// valorifico lo stato
 	$node->field_session_startts['und'][0]['value'] = time();
@@ -1612,8 +1618,11 @@ function _wsmc_session_create($dati) {
 	$node->field_session_user['und'][0]['nid'] = $user_id;
 	// associo l'applicazion
 	$node->field_session_application_id['und'][0]['value'] = $app_id;
-
+	global $user;
+	$user = user_load(1);
+	//node_save_action($node);
     node_save($node);
+	
 	
 			
 	return $node->nid;
@@ -1897,4 +1906,102 @@ function _wsmc_collection_delete($nid) {
  * *****************************************************************************/ 
   
  
+ /*********************************************************************************************************
+ *                  MASK
+ * ******************************************************************************************************/  
+
+ function _wsmc_mask_retrieve($id_image, $id_textAnnotation) {
+ 
+	global $base_root;
+	global $base_path;
+	
+	// array per inserire i dati finali da stampare
+	$final_result = array();	
+
+			$img = array();
+			$records = db_query('SELECT T.nid AS id, Q.field_mask_quality_value AS quality, U.field_mask_updated_value AS updated, TA.field_mask_tag_nid AS tag, F.uri AS uri 
+			FROM {node} AS T
+			JOIN {field_data_field_mask_quality} AS Q
+			JOIN {field_data_field_mask_updated} AS U
+			JOIN {field_data_field_mask_tag} AS TA
+			JOIN {field_data_field_mask_image_reference} AS I
+			JOIN {field_data_field_mask_image} AS MI
+			JOIN {file_managed} AS F
+			ON  T.nid=Q.entity_id AND T.nid=U.entity_id AND T.nid=TA.entity_id AND T.nid=I.entity_id AND T.nid=I.entity_id AND F.fid=MI.field_mask_image_fid
+ 			WHERE I.field_mask_image_reference_nid = :id_image AND TA.field_mask_tag_nid = :id_textAnnotation', array(':id_image' => $id_image, ':id_textAnnotation' => $id_textAnnotation));																								
+			
+			foreach ($records as $record) {
   
+				$img = array();
+				$img['id'] = $record->id;
+				$img['path'] = "sites/default/files/images/" . substr($record->uri, 16);
+				$img['quality'] = $record->quality;
+				$img['updated'] = $record->updated;
+				$img['mask_tag'] = $record->tag;
+  				return $img;
+  			} 
+
+  			$final_result = t(print_error_string('not_valid','mask id',$id));	
+
+  return $final_result;
+}
+ 
+ 
+function _wsmc_mask_create($node) {
+		global $user;
+		
+		//retrieve parameters
+		$node = _services_arg_value($node, 'node');
+		$base64image = isset($node['base64image']) ? $node['base64image'] : '';
+		$quality = isset($node['quality']) ? $node['quality'] : '';
+		$updated = isset($node['updated']) ? $node['updated'] : '';
+		$mask_image = isset($node['mask_image']) ? $node['mask_image'] : '';
+		$mask_tag = isset($node['mask_tag']) ? $node['mask_tag'] : '';
+		
+		//decode image
+		$base64image = str_replace(' ','+',$base64image);
+		$image = base64_decode($base64image);
+		
+		//name of the mask image file as Mask_imageId_Tag_id
+		$baseName = 'Mask_'.$mask_image.'_'.$mask_tag;
+		
+		if($image !== FALSE){
+			
+			$destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
+			
+			$file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
+			if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
+			   $file->status = 1;
+			   $file = file_save($file);
+			}
+			$newNode = (object) array('type' => 'mask');
+			node_object_prepare($newNode);
+		  	$newNode->type = 'mask';
+		  	$newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
+		  	$newNode->uid = 0;
+		  	$newNode->comment = 0;
+		  	$newNode->promote = 0;
+		  	$newNode->moderate = 0;
+		  	$newNode->sticky = 0;
+		  	$newNode->language = 'und';
+			
+			$newNode->field_mask_image['und'][0] = (array)$file;
+			$newNode->field_mask_quality['und'][0]['value'] = $quality;
+			$newNode->field_mask_updated['und'][0]['value'] = $updated;
+			$newNode->field_mask_image_reference['und'][0]['nid'] = $mask_image;
+			$newNode->field_mask_tag['und'][0]['nid'] = $mask_tag;
+			// Save the node.
+	    	node_submit($newNode);  
+	    	node_save($newNode); 
+		
+			$output = $newNode;
+		}
+		else{
+			$output['error'] = t(print_error_string('not_valid','File'));
+		}
+	return (object)$output;
+}
+ 
+  /********************************************************************************
+ *                  END MASK
+ * *****************************************************************************/ 

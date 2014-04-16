@@ -496,12 +496,13 @@ function insert_point($point_value,$point_name)
 
 function retrieveUTaskByTaskId($id_task){
   $id = array();
-  $result = db_query('SELECT f.entity_id AS task_id FROM {field_data_field_utask_task} f WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
+  $result = db_query('SELECT f.entity_id AS task_id FROM {field_data_field_utask_task} AS f WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
   // Result is returned as a iterable object that returns a stdClass object on each iteration
-  foreach ($result as $record) {
-    $id[] = $record->task_id;
+  foreach ($result AS $record) {
+    $id[$record->task_id]['id'] = $record->task_id;
   }
   return $id;
+  
 }
 
 
