@@ -676,6 +676,49 @@ function wsmc_image_services_resources() {
                                   ),
                                 ),
                       ),                                                    
-            ),                           
+            ),
+	 'mask' => array(
+				//	RESTITUISCE LA MASK CON L'ID PASSATO
+				'retrieve' => array(
+					  'help' => 'Retrieves a mask',
+					  'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+					  'callback' => '_wsmc_mask_retrieve',
+					  'access callback' => 'user_access',
+					  'access arguments' => array('access content'),
+					  'args' => array(
+								  array(
+									'name' => 'id_image',
+									'type' => 'string',
+									'description' => 'The id of the image to get',
+									'source' => array('path' => 0),
+									'optional' => FALSE,
+								  ),
+								  array(
+                                    'name' => 'id_textAnnotation',
+                                    'type' => 'int',
+                                    'description' => 'The id of the task to update',
+                                    'source' => array('path' => '1'),
+                                    'optional' => FALSE,
+                                  ),
+								),
+					  ),
+			 
+				'create' => array(
+                      'help' => 'Creates a mask',
+                      'file' => array('file' => 'inc', 'module' => 'wsmc_image'),
+                      'callback' => '_wsmc_mask_create',
+                      'access callback' => 'user_access',
+                      'access arguments' => array('access content'),
+                      'args' => array(
+                                  array(
+                                    'name' => 'data',
+                                    'type' => 'struct',
+                                    'description' => 'The mask object',
+                                    'source' => 'data',
+                                    'optional' => FALSE,
+                                  ),
+                                ),
+                      ),
+			),
   );
 }

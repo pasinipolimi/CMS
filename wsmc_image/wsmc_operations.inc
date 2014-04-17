@@ -496,12 +496,13 @@ function insert_point($point_value,$point_name)
 
 function retrieveUTaskByTaskId($id_task){
   $id = array();
-  $result = db_query('SELECT f.entity_id AS task_id FROM {field_data_field_utask_task} f WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
+  $result = db_query('SELECT f.entity_id AS task_id FROM {field_data_field_utask_task} AS f WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
   // Result is returned as a iterable object that returns a stdClass object on each iteration
-  foreach ($result as $record) {
-    $id[] = $record->task_id;
+  foreach ($result AS $record) {
+    $id[$record->task_id]['id'] = $record->task_id;
   }
   return $id;
+  
 }
 
 
@@ -701,14 +702,15 @@ function session_verify($session_id)
 
 function image_retrieve_available_tags($id){
 	
-	$content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, field_annotation_language_tid as lang
+	$content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
 		FROM {field_data_field_content_name} as C 
 		JOIN {field_data_field_content_textannotation} as A 
 		JOIN {field_data_field_annotation_value} AS V
 		JOIN {field_data_field_content_valid} AS VA
 		JOIN {annotations} AS ASS
-		JOIN field_data_field_annotation_language AS L
-		ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id
+		JOIN {field_data_field_annotation_language} AS L
+    JOIN {field_data_field_iso_code} AS ISO
+		ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id AND ISO.entity_id=L.field_annotation_language_tid
 		WHERE C.field_content_name_value = 'availableTags'AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
 
 	$tags = array();
