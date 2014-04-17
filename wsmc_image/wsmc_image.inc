@@ -1623,8 +1623,6 @@ function _wsmc_session_create($dati) {
 	//node_save_action($node);
     node_save($node);
 
-
-
 	return $node->nid;
 }
 
@@ -1948,60 +1946,58 @@ function _wsmc_collection_delete($nid) {
  
  
 function _wsmc_mask_create($node) {
-		global $user;
+    global $user;
 
-		//retrieve parameters
-		$node = _services_arg_value($node, 'node');
-		$base64image = isset($node['base64image']) ? $node['base64image'] : '';
-		$quality = isset($node['quality']) ? $node['quality'] : '';
-		$updated = isset($node['updated']) ? $node['updated'] : '';
-		$mask_image = isset($node['mask_image']) ? $node['mask_image'] : '';
-		$mask_tag = isset($node['mask_tag']) ? $node['mask_tag'] : '';
+    //retrieve parameters
+    $node = _services_arg_value($node, 'node');
+    $base64image = isset($node['base64image']) ? $node['base64image'] : '';
+    $quality = isset($node['quality']) ? $node['quality'] : '';
+    $updated = isset($node['updated']) ? $node['updated'] : '';
+    $mask_image = isset($node['mask_image']) ? $node['mask_image'] : '';
+    $mask_tag = isset($node['mask_tag']) ? $node['mask_tag'] : '';
 
-		//decode image
-		$base64image = str_replace(' ','+',$base64image);
-		$image = base64_decode($base64image);
+    //decode image
+    $base64image = str_replace(' ','+',$base64image);
+    $image = base64_decode($base64image);
 
-		//name of the mask image file as Mask_imageId_Tag_id
-		$baseName = 'Mask_'.$mask_image.'_'.$mask_tag;
+    //name of the mask image file as Mask_imageId_Tag_id
+    $baseName = 'Mask_'.$mask_image.'_'.$mask_tag;
 
-		if($image !== FALSE){
+    if($image !== FALSE){
 
-			$destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
+      $destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
 
-			$file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
-			if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
-			   $file->status = 1;
-			   $file = file_save($file);
-			}
-			$newNode = (object) array('type' => 'mask');
-			node_object_prepare($newNode);
-		  	$newNode->type = 'mask';
-		  	$newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
-		  	$newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
-		  	$newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
-		  	$newNode->uid = 0;
-		  	$newNode->comment = 0;
-		  	$newNode->promote = 0;
-		  	$newNode->moderate = 0;
-		  	$newNode->sticky = 0;
-		  	$newNode->language = 'und';
+      $file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
+      if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
+         $file->status = 1;
+         $file = file_save($file);
+      }
+      $newNode = (object) array('type' => 'mask');
+      node_object_prepare($newNode);
+        $newNode->type = 'mask';
+        $newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
+        $newNode->uid = 0;
+        $newNode->comment = 0;
+        $newNode->promote = 0;
+        $newNode->moderate = 0;
+        $newNode->sticky = 0;
+        $newNode->language = 'und';
 
-			$newNode->field_mask_image['und'][0] = (array)$file;
-			$newNode->field_mask_quality['und'][0]['value'] = $quality;
-			$newNode->field_mask_updated['und'][0]['value'] = $updated;
-			$newNode->field_mask_image_reference['und'][0]['nid'] = $mask_image;
-			$newNode->field_mask_tag['und'][0]['nid'] = $mask_tag;
-			// Save the node.
-	    	node_submit($newNode);  
-	    	node_save($newNode); 
+      $newNode->field_mask_image['und'][0] = (array)$file;
+      $newNode->field_mask_quality['und'][0]['value'] = $quality;
+      $newNode->field_mask_updated['und'][0]['value'] = $updated;
+      $newNode->field_mask_image_reference['und'][0]['nid'] = $mask_image;
+      $newNode->field_mask_tag['und'][0]['nid'] = $mask_tag;
+      // Save the node.
+        node_submit($newNode);  
+        node_save($newNode); 
 
-			$output = $newNode;
-		}
-		else{
-			$output['error'] = t(print_error_string('not_valid','File'));
-		}
-	return (object)$output;
+      $output = $newNode;
+    }
+    else{
+      $output['error'] = t(print_error_string('not_valid','File'));
+    }
+  return (object)$output;
 }
  
   /********************************************************************************
