@@ -108,11 +108,11 @@ function _wsmc_image_create($image_id, $operation, $node) {
 			$baseName = basename($path);	
 		}
 		//$size = getimagesize($url);
-
+		
 		if($image !== FALSE){
-
+			
 			$destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
-
+			
 			$file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
 			if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
 			   $file->status = 1;
@@ -132,7 +132,7 @@ function _wsmc_image_create($image_id, $operation, $node) {
 			// Save the node.
 	    	node_submit($newNode);  
 	    	node_save($newNode); 
-
+		
 			$output = $newNode;
 		}else{
 			$output['error'] = t(print_error_string('not_valid','File'));
@@ -153,17 +153,17 @@ function _wsmc_image_update($image_id, $operation, $node) {
   	global $user;
 	switch ($operation){
 		case 'segmentation':
-
+		
 			$output = save_segmentation($image_id, $node);
 			break;
 		case 'textAnnotation':
-
+			
 			$output = save_annotation($image_id, $node);
 			return $output;
 			break;
-
+			
 		case 'polylineDescription':
-
+			
 			$output = save_mediasegment($image_id, $node);
 			break;
 		default:
@@ -181,10 +181,10 @@ function _wsmc_image_update($image_id, $operation, $node) {
 function _wsmc_image_retrieve($id) {
 	global $base_root;
 	global $base_path;
-
+	
 	// array per inserire i dati finali da stampare
 	$final_result = array();	
-
+	
 	if($id=='all'):	$final_result = _wsmc_image_index();				
 	else:
 		if($id=='light'):	$final_result = _wsmc_image_index_light(null, null, 'id');		
@@ -207,7 +207,7 @@ function _wsmc_image_retrieve($id) {
 				$content['availableTags'] = image_retrieve_available_tags($img['id']);
 				$content['tagging'] = image_retrieve_tags($img['id']);
 				$content['segmentation'] = image_retrieve_annotations($img['id']);
-
+	
 				$img['descriptions'] = $content;
     			
   				return $img;
@@ -259,7 +259,7 @@ function _wsmc_image_index() {
 	$content['availableTags'] = image_retrieve_available_tags($img['id']);
 	$content['tagging'] = image_retrieve_tags($img['id']);
 	$content['segmentation'] = image_retrieve_annotations($img['id']);
-
+	
 	$img['descriptions'] = $content;
     array_push($toReturn, $img);
 
@@ -272,7 +272,7 @@ function _wsmc_image_index() {
 function _wsmc_image_index_light($collection, $limit, $select) {
 	$toReturn = array();
 
-
+	
 	if(isset($select) && $select=='id'){
 		if(isset($collection)){
 			//retrieve the list of image id from the collection table
@@ -330,7 +330,7 @@ function _wsmc_image_index_light($collection, $limit, $select) {
 			$content['availableTags'] = image_retrieve_available_tags($img['id']);
 			$content['tagging'] = image_retrieve_tags($img['id']);
 			$content['segmentation'] = image_retrieve_annotations($img['id']);
-
+	
 			$img['descriptions'] = $content;
     
     		array_push($toReturn, $img);
@@ -388,15 +388,15 @@ function save_annotation($image_id = NULL, $node)
 {
     
 	$app_details = get_consumer_by_key($node['oauth_consumer_key']);
-
+	
     $app_id = $app_details['id'];
 	// il tag puo essere passato come id o come valore
 	$ta_val = $node['ta_val'];
 	$ta_id = $node['ta_id'];
-
-
+	
+	
 	$ta_name = $node['ta_name'];
-
+	
 	// estrago criteria, language e user_id
 	$criteria = $node['criteria'];
 	$lang_code = $node['language']; 
@@ -404,10 +404,10 @@ function save_annotation($image_id = NULL, $node)
 	$content_type = $node['content_type'];
 
 	$session_id = $node['session_id'];
-
+	
 	$action_id = $node['action_id'];
 	$action_exist = false;
-
+	
 	if(!empty($action_id)):
 		 // verifico se e veramente una action
 	    if(!verify_node_type($action_id,'action')):
@@ -422,7 +422,7 @@ function save_annotation($image_id = NULL, $node)
 
     $array = array('ta', 'ta_name', 'content_type', 'language', 'user_id', 'session_id','image_id','oauth_consumer_key');  //  required fields names
     $fields_to_ceck = implode(",", $array);
-
+	
     $fields_values = array(         // required fields values
             'ta_val' => $ta_val,
             'ta_id' => $ta_id,
@@ -433,7 +433,7 @@ function save_annotation($image_id = NULL, $node)
             'session_id' => $session_id,
             'image_id'=>$image_id,
             'oauth_consumer_key' => $node['oauth_consumer_key']);
-
+	
     $verified = require_fields($fields_to_ceck,$fields_values);
 
     if($verified):  // if at least one field value is missing we throw an error
@@ -474,7 +474,7 @@ function save_annotation($image_id = NULL, $node)
 */
     //verify language value
     $language_id = verify_language($lang_code);
-
+	
 
     if($language_id==0): 
         $output['error'] = t(print_error_string('not_valid','language code',$lang_code));
@@ -491,7 +491,7 @@ function save_annotation($image_id = NULL, $node)
 */
 
 	// control the ta_id
-
+	
 	// if we pass the ta_val
 	if(empty($ta_id)):	
 		// find if this kind of the ta value is presented already
@@ -500,7 +500,7 @@ function save_annotation($image_id = NULL, $node)
     	if($ta_id==0) $ta_id = insert_new_annotation($ta_val,$language_id,$ta_name);
     
 	endif;
-
+	
 /*
 	// verify the ta_id
 	if(!empty($ta_id)):
@@ -511,7 +511,7 @@ function save_annotation($image_id = NULL, $node)
     endif;
 */
 
-
+	
 	//add new tag content to contents
     $content_id = add_new_content($content_type,$image_id,$ta_id);
 
@@ -522,7 +522,7 @@ function save_annotation($image_id = NULL, $node)
     //return $action_exist;
     if($action_exist):
 		$action_node = node_load($action_id);
-
+		
 		foreach($action_node->field_action_annotation_id['und'] as $key => $action_ann)
 			{
 
@@ -531,9 +531,9 @@ function save_annotation($image_id = NULL, $node)
 					return $action_node;
 				endif;
 			}
-
+		
 		$action_node->field_action_annotation_id['und'][]['nid'] = $ta_id;
-
+		
 		node_save($action_node);
 		// associo alla action esistente l'annotation
 	else:
@@ -607,7 +607,7 @@ function save_segmentation($image_id = NULL, $node){
         $output['error'] = t(print_error_string('required',join(', ', $verified))); 
         return $output;
     endif;
-
+	
     $cubrik_user_id = process_cubrik_user($app_id,$user_id);
 
 
@@ -643,7 +643,7 @@ function save_segmentation($image_id = NULL, $node){
     endif;
 
 	// control the ta_id
-
+	
 	// if we pass the ta_val
 	if(empty($ta_id)):	
 		// find if this kind of the ta value is presented already
@@ -695,7 +695,7 @@ function save_segmentation($image_id = NULL, $node){
     
 
 	// if all verification went well, we can finaly create the action
-
+	
 	$action = create_action($session_id,$cubrik_user_id,'segmentation',NULL,$image_id,$content_id,$ta_id,$points);
 
 	return $action;
@@ -758,7 +758,7 @@ function save_mediasegment($image_id = NULL, $node){
         $output['error'] = t(print_error_string('required',join(', ', $verified))); 
         return $output;
     endif;
-
+	
     // get a cubrik_user_id
     $cubrik_user_id = process_cubrik_user($app_id,$user_id);
 
@@ -815,7 +815,7 @@ function save_mediasegment($image_id = NULL, $node){
     
 
 	// if all verification went well, we can finaly create the action
-
+	
 	$action = create_action($session_id,$cubrik_user_id,'mediasegment',NULL,$image_id,$content_id,NULL,$points,NULL);
 
 	return $action;
@@ -889,7 +889,7 @@ function _wsmc_task_create($data){
         	break;
     	}
  	}
-
+	
   return $output;
 }
 
@@ -936,15 +936,18 @@ function _wsmc_task_index($collection, $limit, $open){
 	$output=array();
 
 	if(isset($collection)){
-		$query="SELECT T.nid As id, T.title as title, I. field_task_status_value AS status
+		$query="SELECT T.nid As id, T.title as title, I. field_task_status_value AS status, TY.field_task_type_value AS type
 			FROM {field_data_field_collection_task} AS C 
 			JOIN {node} AS T
+			JOIN {field_data_field_task_type} AS TY
 			JOIN {field_data_field_task_status} AS I
-			ON T.nid=C.field_collection_task_nid AND T.nid=I.entity_id WHERE T.type = 'task'AND T.nid=C. field_collection_task_nid AND C.entity_id='{$collection}'";
+			ON T.nid=C.field_collection_task_nid AND T.nid=I.entity_id AND T.nid = TY.entity_id
+			WHERE T.type = 'task'AND T.nid=C. field_collection_task_nid AND C.entity_id='{$collection}'";
 	} else {
-		$query="SELECT T.nid As id, T.title as title, I. field_task_status_value AS status FROM {node} AS T
+		$query="SELECT T.nid As id, T.title as title, I. field_task_status_value AS status, TY.field_task_type_value AS type FROM {node} AS T
 			JOIN {field_data_field_task_status} AS I
-			ON  T.nid=I.entity_id
+			JOIN {field_data_field_task_type} AS TY
+			ON  T.nid=I.entity_id AND T.nid = TY.entity_id
  			WHERE T.type = 'task'";
   		
 	}
@@ -958,10 +961,11 @@ function _wsmc_task_index($collection, $limit, $open){
   
   	$result = db_query($query);
   	// Result is returned as a iterable object that returns a stdClass object on each iteration
-  	foreach ($result as $record) {
-    
+
+	foreach ($result as $record) {
+
     	$task_values['id'] = $record->id;
-    	$task_values['taskType'] = $record->title;
+    	$task_values['taskType'] = $record->type;
     	$task_values['status'] = $record->status;
 
     	$task_values['image']= task_retrieve_images($record->id);
@@ -971,11 +975,10 @@ function _wsmc_task_index($collection, $limit, $open){
     
 		$output['task'][] = $task_values;
 		unset($task_values);
+		
   	}
   	return   $output;
 }
-
-
 
 function _wsmc_task_retrieve($id_task){
 
@@ -996,8 +999,10 @@ function _wsmc_task_retrieve($id_task){
     		$utask_id = retrieveUTaskByTaskId($record->id);
 			$task_values['utasks']= $utask_id;
     
-			$output['task'][] = $task_values;
-	  		unset($utaskList);
+			//$output['task'][] = $task_values;
+	  		//unset($utaskList);
+			return $task_values;
+
 		}
   	} else {
     	$output['error'] = t(print_error_string('not_valid','id task'));
@@ -1065,6 +1070,7 @@ function _wsmc_utask_create($data){
       if(!empty($data['order'])) $other_fields['field_utask_order']['und'][0]['value'] = $data['order'];
       if(!empty($data['action'])) $other_fields['field_utask_action']['und'][0]['nid'] = $data['action'];
       $other_fields['field_utask_task']['und'][0]['nid'] = $data['task'];
+	  $other_fields['field_utask_type']['und'][0]['value'] = $data['taskType'];
       $new_node = create_new_node($node_type, $title, $other_fields);
       node_save($new_node);
       $output = $new_node;
@@ -1193,7 +1199,7 @@ function _wsmc_utask_retrieve($id_utask){
     }else{
       $output['uTask'] = array(
           'id' => $uTask->nid,
-          'taskType' => $uTask->title,
+          'utaskType' => $uTask->field_utask_type['und'][0]['value'],
           'status' => $uTask->field_utask_status['und'][0]['value'],
           'order' => $uTask->field_utask_order['und'][0]['value'],
           'action' => $uTask->field_utask_action['und'][0]['nid'],
@@ -1237,19 +1243,19 @@ function _wsmc_utask_retrieve($id_utask){
 	$annotations = $content->field_content_textannotation['und'];
 	foreach ($annotations as $key => $annotation)
 		{
-
+			
 			$output['itemAnnotations'][] = _wsmc_textAnnotation_retrieve($annotation['nid']);
-
+			
 		}
-
+			
 	// load points
 	$points = $content->field_content_point['und'];
 	foreach ($points as $key => $point)
 		{
 			$output['mediaSegment'][] = _wsmc_polylinedescription_retrieve($point['nid']);			
-
+	
 		}	
-
+	
 	return $output;
  }
  
@@ -1318,7 +1324,7 @@ function _wsmc_utask_retrieve($id_utask){
     $output['name'] = $textAnnotation->field_annotation_name['und'][0]['value'];
 	$output['language'] = print_language_data($textAnnotation->field_annotation_language['und'][0]['tid']);
 	$output['value'] = $textAnnotation->field_annotation_value['und'][0]['value'];    
-
+	
 	return $output;
  }
 
@@ -1346,7 +1352,7 @@ function _wsmc_polylinedescription_retrieve ($id_polylinedescription) {
     $output['id'] = $id_polylinedescription;
     $output['name'] = $polylinedescription->field_point_name['und'][0]['value'];
 	$output['polyline'] = $polylinedescription->field_point_value['und'][0]['value'];    
-
+	
 	return $output;
  }
 
@@ -1386,7 +1392,7 @@ function _wsmc_action_retrieve ($id_action) {
 		$output['contentid'] = $action->field_action_content_id['und'][0]['nid'];
 		$output['imageid'] = $action->field_action_image_id['und'][0]['nid'];
 	}
-
+	
 	return $output;
  }
  
@@ -1537,7 +1543,7 @@ function _wsmc_action_create($dati) {
 
 function _wsmc_session_index(){
 	$out_tot=array();
-
+		
 	$result = db_query('SELECT N.nid AS ID, ST.field_session_startts_value AS startTs, ET.field_session_endts_value AS endTs
 					FROM  {node} AS N
 					JOIN  {field_data_field_session_startts} AS ST
@@ -1578,21 +1584,21 @@ function _wsmc_session_retrieve ($id_session) {
 		$output['endTs'] = $record->endTs;
 
 		$output['users'] = session_retrieve_users($id_session);
-
+		
 		$output['actions'] = session_retrieve_actions($id_session);
-
+		
 		return $output;
 	}
 
 	$output['error'] = t(print_error_string('not_valid','id task'));
-
+	
 	return $output;
 }
  
 
 
 function _wsmc_session_create($dati) {
-
+		
 	$app_details = get_consumer_by_key($dati['oauth_consumer_key']);
     $app_id = $app_details['id'];
         
@@ -1609,12 +1615,12 @@ function _wsmc_session_create($dati) {
     endif;
         
 	// creo il nuovo nodo
-
+	
 	$node = create_new_node('session', 'Session');
 
 	// valorifico lo stato
 	$node->field_session_startts['und'][0]['value'] = time();
-
+			
 	$node->field_session_user['und'][0]['nid'] = $user_id;
 	// associo l'applicazion
 	$node->field_session_application_id['und'][0]['value'] = $app_id;
@@ -1622,7 +1628,9 @@ function _wsmc_session_create($dati) {
 	$user = user_load(1);
 	//node_save_action($node);
     node_save($node);
-
+	
+	
+			
 	return $node->nid;
 }
 
@@ -1638,7 +1646,7 @@ function _wsmc_session_update($session_id, $node) {
 
 	$state = $node['state'];
 
-
+	
     $array = array('state', 'session_id');  //  required fields names
     $fields_to_ceck = implode(",", $array);
 
@@ -1661,7 +1669,7 @@ function _wsmc_session_update($session_id, $node) {
         //$output['error'] = $control;
         //return $output;
     endif;  
-
+	
 	$session_node = node_load($session_id);
 	// if we want to update the session from closed to opened
 	if($state):
@@ -1826,6 +1834,7 @@ function _wsmc_collection_create( $data) {
 
 
 function _wsmc_collection_retrieve_images($id){
+	$output=array();
 	$images= array();
 
 	$result = db_query('SELECT field_collection_image_nid as nid
@@ -1834,7 +1843,9 @@ function _wsmc_collection_retrieve_images($id){
 				WHERE N.nid=:nid',array(':nid' => $id) );
 
 	foreach ($result as $record) {
-		$images[]=$record->nid;
+	
+		$images[$record->nid]['id']=$record->nid;
+		
   	}
   	return $images;
 
@@ -1912,7 +1923,7 @@ function _wsmc_collection_delete($nid) {
  
 	global $base_root;
 	global $base_path;
-
+	
 	// array per inserire i dati finali da stampare
 	$final_result = array();	
 
@@ -1927,7 +1938,7 @@ function _wsmc_collection_delete($nid) {
 			JOIN {file_managed} AS F
 			ON  T.nid=Q.entity_id AND T.nid=U.entity_id AND T.nid=TA.entity_id AND T.nid=I.entity_id AND T.nid=I.entity_id AND F.fid=MI.field_mask_image_fid
  			WHERE I.field_mask_image_reference_nid = :id_image AND TA.field_mask_tag_nid = :id_textAnnotation', array(':id_image' => $id_image, ':id_textAnnotation' => $id_textAnnotation));																								
-
+			
 			foreach ($records as $record) {
   
 				$img = array();
@@ -1946,58 +1957,58 @@ function _wsmc_collection_delete($nid) {
  
  
 function _wsmc_mask_create($node) {
-    global $user;
-
-    //retrieve parameters
-    $node = _services_arg_value($node, 'node');
-    $base64image = isset($node['base64image']) ? $node['base64image'] : '';
-    $quality = isset($node['quality']) ? $node['quality'] : '';
-    $updated = isset($node['updated']) ? $node['updated'] : '';
-    $mask_image = isset($node['mask_image']) ? $node['mask_image'] : '';
-    $mask_tag = isset($node['mask_tag']) ? $node['mask_tag'] : '';
-
-    //decode image
-    $base64image = str_replace(' ','+',$base64image);
-    $image = base64_decode($base64image);
-
-    //name of the mask image file as Mask_imageId_Tag_id
-    $baseName = 'Mask_'.$mask_image.'_'.$mask_tag;
-
-    if($image !== FALSE){
-
-      $destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
-
-      $file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
-      if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
-         $file->status = 1;
-         $file = file_save($file);
-      }
-      $newNode = (object) array('type' => 'mask');
-      node_object_prepare($newNode);
-        $newNode->type = 'mask';
-        $newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
-        $newNode->uid = 0;
-        $newNode->comment = 0;
-        $newNode->promote = 0;
-        $newNode->moderate = 0;
-        $newNode->sticky = 0;
-        $newNode->language = 'und';
-
-      $newNode->field_mask_image['und'][0] = (array)$file;
-      $newNode->field_mask_quality['und'][0]['value'] = $quality;
-      $newNode->field_mask_updated['und'][0]['value'] = $updated;
-      $newNode->field_mask_image_reference['und'][0]['nid'] = $mask_image;
-      $newNode->field_mask_tag['und'][0]['nid'] = $mask_tag;
-      // Save the node.
-        node_submit($newNode);  
-        node_save($newNode); 
-
-      $output = $newNode;
-    }
-    else{
-      $output['error'] = t(print_error_string('not_valid','File'));
-    }
-  return (object)$output;
+		global $user;
+		
+		//retrieve parameters
+		$node = _services_arg_value($node, 'node');
+		$base64image = isset($node['base64image']) ? $node['base64image'] : '';
+		$quality = isset($node['quality']) ? $node['quality'] : '';
+		$updated = isset($node['updated']) ? $node['updated'] : '';
+		$mask_image = isset($node['mask_image']) ? $node['mask_image'] : '';
+		$mask_tag = isset($node['mask_tag']) ? $node['mask_tag'] : '';
+		
+		//decode image
+		$base64image = str_replace(' ','+',$base64image);
+		$image = base64_decode($base64image);
+		
+		//name of the mask image file as Mask_imageId_Tag_id
+		$baseName = 'Mask_'.$mask_image.'_'.$mask_tag;
+		
+		if($image !== FALSE){
+			
+			$destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
+			
+			$file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
+			if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
+			   $file->status = 1;
+			   $file = file_save($file);
+			}
+			$newNode = (object) array('type' => 'mask');
+			node_object_prepare($newNode);
+		  	$newNode->type = 'mask';
+		  	$newNode->title = isset($node['title']) ? $node['title'] : 'Mask';
+		  	$newNode->uid = 0;
+		  	$newNode->comment = 0;
+		  	$newNode->promote = 0;
+		  	$newNode->moderate = 0;
+		  	$newNode->sticky = 0;
+		  	$newNode->language = 'und';
+			
+			$newNode->field_mask_image['und'][0] = (array)$file;
+			$newNode->field_mask_quality['und'][0]['value'] = $quality;
+			$newNode->field_mask_updated['und'][0]['value'] = $updated;
+			$newNode->field_mask_image_reference['und'][0]['nid'] = $mask_image;
+			$newNode->field_mask_tag['und'][0]['nid'] = $mask_tag;
+			// Save the node.
+	    	node_submit($newNode);  
+	    	node_save($newNode); 
+		
+			$output = $newNode;
+		}
+		else{
+			$output['error'] = t(print_error_string('not_valid','File'));
+		}
+	return (object)$output;
 }
  
   /********************************************************************************

@@ -57,7 +57,7 @@ _wsmc_quality_retrieve ok
 function print_user_data($node_id)
 	{
 		$user = array();
-
+		
 		// load user node
 		$user_node = node_load($node_id);
 
@@ -81,7 +81,7 @@ function print_user_data($node_id)
  */
 
 function print_language_data($lang_id)	{
-
+		
 	$language = taxonomy_term_load($lang_id);
 	$lang = $language->field_iso_code['und'][0]['value'];		
 
@@ -102,7 +102,7 @@ function verify_language($iso_code)
 			{
 				$lang = taxonomy_term_load($language->tid);
 				if($lang->field_iso_code['und'][0]['value']==$iso_code) return $language->tid;
-
+					
 			}
 		return 0;
 	}	
@@ -128,7 +128,7 @@ function print_error_string($id,$special_string=NULL,$special_string_id=NULL)
 	return $err_output;
 	}
 
-
+	
 
 /*
  * @param $node_type string: define the type of the node
@@ -155,12 +155,12 @@ function create_new_node($node_type, $title = NULL, $other_fields =  NULL)
             $node->$key = $value;
           }
         }
-
+		
 		return $node;
 	}	
-
-
-
+	
+	
+	
 
  
 /********************************************************************************
@@ -298,9 +298,9 @@ function verify_node_type($node_id,$desired_type,$field_annotation_content=NULL)
  */
 function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NULL)
 {
-
+	
 	//$content_id = get_content_id_from_type($content_type);
-
+	
 
     $node = create_new_node('content');
     
@@ -313,7 +313,7 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     $node->field_content_image['und'][0]['nid'] = $img_id;
 
     //$node->field_content_id['und'][0]['value'] = $content_id;
-
+	
 	$node->field_content_valid['und'][0]['value'] = 1;
         
     node_save($node);
@@ -324,7 +324,7 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
 
     // if no content_id was found update it from 1 to actual nid
     if($content_id==1) $node->field_content_id['und'][0]['value'] = $node->nid;
-
+	
     node_save($node);  
     
     return $node->nid;
@@ -349,7 +349,7 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     $node->field_annotation_value['und'][0]['value'] = $value;
     
     $node->field_annotation_name['und'][0]['value'] = $annotation_name;
-
+	
 	//imposto di default l'annotazione come valida quando viene creata
 	//$node->field_annotation_valid['und'][0]['value'] = 1;
     
@@ -386,7 +386,7 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
  function create_action($session_id,$user_id,$action_type,$action_log=NULL,$image_id=NULL,$content_id=NULL,$annotations=NULL,$points=NULL)
  {
  	$timestamp = time();
-
+		
     $node = create_new_node('action');
         
     $node->field_action_type_val['und'][0]['value'] = $action_type;
@@ -401,25 +401,25 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
 
     // add the image id
     $node->field_action_image_id['und'][0]['nid'] = $image_id;
-
+	
     // add the content id
     $node->field_action_content_id['und'][0]['nid'] = $content_id;
 
     // add the content type
     //$node->field_action_content_type['und'][0]['value'] = $content_type;
-
+	
     // add the annotation id
     $node->field_action_annotation_id['und'][]['nid'] = $annotations;
-
+	
     // add the point id
     $node->field_action_point_id['und'] = $points;			        
       
     // add the startts value
     $node->field_action_startts_val['und'][0]['value'] = $timestamp;
-
+	
     // add the endts value
     $node->field_action_endts_val['und'][0]['value'] = time();  
-
+	  
     node_save($node);
     
     $node = node_load($node->nid);
@@ -429,13 +429,13 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
     node_save($node);  
     
     // riferimento della action dentro la session
-
+	
     $session_node = node_load($session_id);
     $session_node->field_session_actions['und'][]['nid']=$action_id;
 
     // update user list	
     update_session_user_list($session_id,$user_id);
-
+	
     return $node; 	
  }
 
@@ -477,7 +477,7 @@ function update_session_user_list($session_id,$user_id)
   */
 function insert_point($point_value,$point_name)
 	{
-
+		
 	$node = create_new_node('point');
         
     $node->field_point_value['und'][0]['value'] = $point_value;
@@ -496,10 +496,20 @@ function insert_point($point_value,$point_name)
 
 function retrieveUTaskByTaskId($id_task){
   $id = array();
-  $result = db_query('SELECT f.entity_id AS task_id FROM {field_data_field_utask_task} AS f WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
+  $result = db_query('SELECT f.entity_id AS task_id, S.field_utask_status_value AS status, T.field_utask_type_value AS type
+					FROM {field_data_field_utask_task} AS f 
+					JOIN {field_data_field_utask_status} AS S
+					JOIN {field_data_field_utask_type} AS T
+					ON f.entity_id = S.entity_id AND f.entity_id = T.entity_id
+					WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
   // Result is returned as a iterable object that returns a stdClass object on each iteration
   foreach ($result AS $record) {
+
     $id[$record->task_id]['id'] = $record->task_id;
+	$id[$record->task_id]['status'] = $record->status;
+	$id[$record->task_id]['utaskType'] = $record->type;
+	
+	
   }
   return $id;
   
@@ -523,7 +533,7 @@ function retrieveUTaskDataByTaskId($id_task){
         	'taskType' => $record->title,
         	'status' => $record->status,
       	);
-
+	  
 		$utasks[] = $utasks; 
 		unset($utasks);
   	}
@@ -657,7 +667,7 @@ function session_retrieve_actions($id){
 						JOIN {actionsV} AS A
 						ON A.action_id=S.field_session_actions_nid
 						WHERE S.entity_id= :nid', array(':nid' => $id)); 
-
+			
 	foreach ($res_acts  as $action)
 	{		
     	$outputa['id'] = $action->action_id;
@@ -681,7 +691,7 @@ function session_retrieve_actions($id){
 
 function session_verify($session_id)
 {
-
+	
 	$res=db_query('SELECT N.nid
 			FROM  {node} AS N
 			JOIN {field_data_field_session_endts} AS ET
@@ -702,15 +712,14 @@ function session_verify($session_id)
 
 function image_retrieve_available_tags($id){
 	
-	$content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
+	$content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, field_annotation_language_tid as lang
 		FROM {field_data_field_content_name} as C 
 		JOIN {field_data_field_content_textannotation} as A 
 		JOIN {field_data_field_annotation_value} AS V
 		JOIN {field_data_field_content_valid} AS VA
 		JOIN {annotations} AS ASS
-		JOIN {field_data_field_annotation_language} AS L
-    JOIN {field_data_field_iso_code} AS ISO
-		ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id AND ISO.entity_id=L.field_annotation_language_tid
+		JOIN field_data_field_annotation_language AS L
+		ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id
 		WHERE C.field_content_name_value = 'availableTags'AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
 
 	$tags = array();
@@ -759,12 +768,12 @@ function task_retrieve_images($id){
 }
 
 function image_exist($id){
-
+	
 	$res=db_query('SELECT nid 
 				FROM {node} AS I
 				WHERE type = :t AND nid = :uid', array(':uid' => $id, ':t'=> 'image'));
-
-
+	
+	
 	foreach($res AS $key){
         return 1;
     }
