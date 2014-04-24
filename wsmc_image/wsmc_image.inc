@@ -601,7 +601,7 @@ function save_segmentation($image_id = NULL, $node){
             'oauth_consumer_key' => $node['oauth_consumer_key']);
 
     $verified = require_fields($fields_to_ceck,$fields_values);
-    
+
     if($verified):  // if at least one field value is missing we throw an error
     
         $output['error'] = t(print_error_string('required',join(', ', $verified))); 
