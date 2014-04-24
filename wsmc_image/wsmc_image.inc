@@ -154,7 +154,6 @@ function _wsmc_image_update($image_id, $operation, $node) {
 	switch ($operation){
 		case 'segmentation':
 			$output = save_segmentation($image_id, $node);
-			return "ok";
 			break;
 		case 'textAnnotation':
 			
@@ -620,7 +619,7 @@ function save_segmentation($image_id = NULL, $node){
 
     // verify if session is open
 	$control = session_verify($session_id);
-	return "ok";
+
 	
 	if($control!=1):
 		$output['error'] = $control;
@@ -642,6 +641,7 @@ function save_segmentation($image_id = NULL, $node){
         $output['error'] = t(print_error_string('not_valid','image id',$image_id));
         return $output;
     endif;
+
 
 	// control the ta_id
 	

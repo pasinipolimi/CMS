@@ -696,15 +696,12 @@ function session_verify($session_id)
 					FROM {field_data_field_session_endts} AS ET
 					WHERE ET.entity_id = :id AND field_session_endts_value != NULL', array(':id' => $session_id));
 
-	if(isset($res)){
-		//the session is closed
-		$output = t('Session id '.$session_id.' is closed');
-	} else {
-		// than the output is 1. the desired output
-		$output = 1;
-	}
+  foreach($res AS $key){
+        $output = t('Session id '.$session_id.' is closed');
+        return $output;
+  }
 
-    return $output;
+  return 1;
 }
 
 
