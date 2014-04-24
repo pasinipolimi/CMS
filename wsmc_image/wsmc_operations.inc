@@ -247,9 +247,10 @@ function create_new_node($node_type, $title = NULL, $other_fields =  NULL)
   */
 function verify_node_type($node_id,$desired_type,$field_annotation_content=NULL) {
 
+
 	$res=db_query('SELECT nid 
 				FROM {node} AS I
-				WHERE type = :t AND nid = :uid', array(':uid' => $node_id, '_t'=> $desired_type));
+				WHERE type = :t AND nid = :uid', array(':uid' => $node_id, ':t'=> $desired_type));
 	foreach($res AS $key){
         return 1;
     }
@@ -691,12 +692,9 @@ function session_retrieve_actions($id){
 
 function session_verify($session_id)
 {
-	
-	$res=db_query('SELECT N.nid
-			FROM  {node} AS N
-			JOIN {field_data_field_session_endts} AS ET
-			ON ET.entity_id=N.nid
-			WHERE N.nid :nid', array(':nid' => $session_id)); 
+	$res=db_query('SELECT ET.entity_id
+					FROM {field_data_field_session_endts} AS ET
+					WHERE ET.entity_id = :id AND field_session_endts_value != NULL', array(':id' => $session_id));
 
 	if(isset($res)){
 		//the session is closed

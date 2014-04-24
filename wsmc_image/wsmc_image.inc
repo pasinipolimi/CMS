@@ -153,8 +153,8 @@ function _wsmc_image_update($image_id, $operation, $node) {
   	global $user;
 	switch ($operation){
 		case 'segmentation':
-		
 			$output = save_segmentation($image_id, $node);
+			return "ok";
 			break;
 		case 'textAnnotation':
 			
@@ -616,11 +616,12 @@ function save_segmentation($image_id = NULL, $node){
         $output['error'] = t(print_error_string('not_valid','session id',$session_id));
         return $output;
     endif;
-
+	
 
     // verify if session is open
 	$control = session_verify($session_id);
-
+	return "ok";
+	
 	if($control!=1):
 		$output['error'] = $control;
 		return $output;
@@ -1926,6 +1927,16 @@ function _wsmc_collection_delete($nid) {
 	
 	// array per inserire i dati finali da stampare
 	$final_result = array();	
+	$times = db_query('SELECT MAX(UP.field_mask_updated_value) AS timestamp
+								FROM {field_data_field_mask_updated} AS UP
+								JOIN {field_data_field_mask_tag} AS TAG
+								JOIN {field_data_field_mask_image_reference} AS IMAGE
+								ON UP.entity_id = TAG.entity_id AND UP.entity_id = IMAGE.entity_id
+								WHERE IMAGE.field_mask_image_reference_nid = :id_image AND TAG.field_mask_tag_nid = :id_textAnnotation ', array(':id_image' => $id_image, ':id_textAnnotation' => $id_textAnnotation));	
+			
+			foreach ($times as $time) {
+				$timestamp = $time->timestamp;
+			}
 
 			$img = array();
 			$records = db_query('SELECT T.nid AS id, Q.field_mask_quality_value AS quality, U.field_mask_updated_value AS updated, TA.field_mask_tag_nid AS tag, F.uri AS uri 
@@ -1936,8 +1947,8 @@ function _wsmc_collection_delete($nid) {
 			JOIN {field_data_field_mask_image_reference} AS I
 			JOIN {field_data_field_mask_image} AS MI
 			JOIN {file_managed} AS F
-			ON  T.nid=Q.entity_id AND T.nid=U.entity_id AND T.nid=TA.entity_id AND T.nid=I.entity_id AND T.nid=I.entity_id AND F.fid=MI.field_mask_image_fid
- 			WHERE I.field_mask_image_reference_nid = :id_image AND TA.field_mask_tag_nid = :id_textAnnotation', array(':id_image' => $id_image, ':id_textAnnotation' => $id_textAnnotation));																								
+			ON  T.nid=Q.entity_id AND T.nid=U.entity_id AND T.nid=TA.entity_id AND T.nid=I.entity_id AND T.nid=MI.entity_id AND F.fid=MI.field_mask_image_fid
+ 			WHERE I.field_mask_image_reference_nid = :id_image AND TA.field_mask_tag_nid = :id_textAnnotation AND U.field_mask_updated_value = :timestamp', array(':id_image' => $id_image, ':id_textAnnotation' => $id_textAnnotation, ':timestamp' => $timestamp));																									
 			
 			foreach ($records as $record) {
   
@@ -1953,6 +1964,8 @@ function _wsmc_collection_delete($nid) {
   			$final_result = t(print_error_string('not_valid','mask id',$id));	
 
   return $final_result;
+			
+		
 }
  
  
@@ -1972,7 +1985,7 @@ function _wsmc_mask_create($node) {
 		$image = base64_decode($base64image);
 		
 		//name of the mask image file as Mask_imageId_Tag_id
-		$baseName = 'Mask_'.$mask_image.'_'.$mask_tag;
+		$baseName = 'Mask_'.$mask_image.'_'.$mask_tag.'.png';
 		
 		if($image !== FALSE){
 			
