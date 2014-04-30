@@ -514,8 +514,8 @@ function save_annotation($image_id = NULL, $node)
 	//add new tag content to contents
     $content_id = add_new_content($content_type,$image_id,$ta_id);
 
-    $content = node_load($content_id);
-    $content_type = $content->field_content_name['und'][0]['value'];
+    //$content = node_load($content_id);
+    //$content_type = $content->field_content_name['und'][0]['value'];
 
     // if all verification went well, we can finaly create the action
     //return $action_exist;
@@ -539,6 +539,8 @@ function save_annotation($image_id = NULL, $node)
 		// altrimente creo una nuova action
     $action = create_action($session_id,$cubrik_user_id,'annotation',NULL,$image_id,$content_id,$ta_id,NULL);
 	endif;
+	save_annotation_availableTags($image_id, $session_id, $language_id, $cubrik_user_id, $ta_val, $ta_name );
+
 	return $action;
 
 }
@@ -609,14 +611,6 @@ function save_segmentation($image_id = NULL, $node){
 	
     $cubrik_user_id = process_cubrik_user($app_id,$user_id);
 
-
-	//verify the session id
-    if(!verify_node_type($session_id,'session')):
-        $output['error'] = t(print_error_string('not_valid','session id',$session_id));
-        return $output;
-    endif;
-	
-
     // verify if session is open
 	$control = session_verify($session_id);
 
@@ -630,17 +624,17 @@ function save_segmentation($image_id = NULL, $node){
     $language_id = verify_language($lang_code);
 
 
-    if($language_id==0): 
-        $output['error'] = t(print_error_string('not_valid','language code',$lang_code));
-        return $output;
-    endif;
+    //if($language_id==0): 
+    //    $output['error'] = t(print_error_string('not_valid','language code',$lang_code));
+    //    return $output;
+    //endif;
 
     //verify if the image is an image
      
-    if(!verify_node_type($image_id,'image')):
-        $output['error'] = t(print_error_string('not_valid','image id',$image_id));
-        return $output;
-    endif;
+    //if(!verify_node_type($image_id,'image')):
+    //    $output['error'] = t(print_error_string('not_valid','image id',$image_id));
+    //    return $output;
+    //endif;
 
 
 	// control the ta_id
@@ -762,13 +756,6 @@ function save_mediasegment($image_id = NULL, $node){
 	
     // get a cubrik_user_id
     $cubrik_user_id = process_cubrik_user($app_id,$user_id);
-
-
-	//verify the session id
-    if(!verify_node_type($session_id,'session')):
-        $output['error'] = t(print_error_string('not_valid','session id',$session_id));
-        return $output;
-    endif;
 
 
     // verify if session is open
@@ -1422,11 +1409,7 @@ function _wsmc_action_create($dati) {
         return $output;
     endif;    
  
-    //verify the session id
-    if(!verify_node_type($session_id,'session')):
-        $output['error'] = t(print_error_string('not_valid','session id',$session_id));
-        return $output;
-    endif;
+   
  
     // verify if session is open
     $control = session_verify($session_id);
@@ -1483,11 +1466,7 @@ function _wsmc_action_create($dati) {
 
         return $output;
     endif;  
-    //verify the session id
-    if(!verify_node_type($session_id,'session')):
-        $output['error'] = t(print_error_string('not_valid','session id',$session_id));
-        return $output;
-    endif;
+  
  
     // verify if session is open
     $control = session_verify($session_id);

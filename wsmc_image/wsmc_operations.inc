@@ -692,22 +692,34 @@ function session_retrieve_actions($id){
 
 function session_verify($session_id)
 {
-	$res=db_query('SELECT ET.entity_id
-					FROM {field_data_field_session_endts} AS ET
-					WHERE ET.entity_id = :id AND field_session_endts_value != NULL', array(':id' => $session_id));
+	$res=db_query('SELECT N.nid, field_session_endts_value AS end
+FROM {node} AS N
+LEFT JOIN {field_data_field_session_endts} AS E ON N.nid = :id', array(':id' => $session_id));
 
   foreach($res AS $key){
-        $output = t('Session id '.$session_id.' is closed');
-        return $output;
+    if(!isset($key->end)){
+      //non finita, va tutto bene
+      return 1;
+    } else{
+      $output = t('Session id '.$session_id.' is closed');
+      return $output;
+    }    
   }
+  $output = t('Session id '.$session_id.' does not exist');
+  return $output;
 
-  return 1;
+  //foreach($res AS $key){
+  //      $output = t('Session id '.$session_id.' is closed');
+  //      return $output;
+  //}
+
+  //return 1;
 }
 
 
 function image_retrieve_available_tags($id){
 	
-	$content_query = db_query("SELECT  DISTINCT field_annotation_value_value AS value, ISO.field_iso_code_value as lang
+	$content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
     FROM {field_data_field_content_name} as C 
     JOIN {field_data_field_content_textannotation} as A 
     JOIN {field_data_field_annotation_value} AS V
@@ -716,13 +728,35 @@ function image_retrieve_available_tags($id){
     JOIN {field_data_field_annotation_language} AS L
     JOIN {field_data_field_iso_code} AS ISO
     ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id AND ISO.entity_id=L.field_annotation_language_tid
-    WHERE C.field_content_name_value = 'tagging'AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
+    WHERE C.field_content_name_value = 'availableTags' AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
 
 	$tags = array();
   foreach ($content_query as $content_record) {
 		$tags[]=$content_record;  	
   }
   	
+  return $tags;
+
+}
+
+function image_contains_tags($id, $tag, $language){
+  
+  $content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
+    FROM {field_data_field_content_name} as C 
+    JOIN {field_data_field_content_textannotation} as A 
+    JOIN {field_data_field_annotation_value} AS V
+    JOIN {field_data_field_content_valid} AS VA
+    JOIN {annotations} AS ASS
+    JOIN {field_data_field_annotation_language} AS L
+    JOIN {field_data_field_iso_code} AS ISO
+    ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id AND ISO.entity_id=L.field_annotation_language_tid
+    WHERE C.field_content_name_value = 'availableTags' AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
+
+  $tags = array();
+  foreach ($content_query as $content_record) {
+    $tags[]=$content_record;    
+  }
+    
   return $tags;
 
 }
@@ -788,6 +822,28 @@ function task_exist($id){
 
 function _wsmc_quality_retrieve($id) {
 	return $id;
+}
+
+
+function save_annotation_availableTags($image_id, $session_id, $language_id, $cubrik_user_id, $ta_val, $ta_name )
+{
+  
+  $content_type = 'availableTags';
+
+  
+  // find if this kind of the ta value is presented already
+  $ta_id = get_annotation_id($ta_val,$ta_name,$language_id);
+  // if the value was not found we insert a new annotation
+  if($ta_id==0) $ta_id = insert_new_annotation($ta_val,$language_id,$ta_name);
+    
+
+  //add new tag content to contents
+  $content_id = add_new_content($content_type,$image_id,$ta_id);
+
+  $action = create_action($session_id,$cubrik_user_id,'annotation',NULL,$image_id,$content_id,$ta_id,NULL);
+  
+  return $action;
+
 }
 
 
