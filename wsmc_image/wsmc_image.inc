@@ -1939,7 +1939,7 @@ function _wsmc_collection_delete($nid) {
 			}
 
 			$img = array();
-			$records = db_query('SELECT T.nid AS id, Q.field_mask_quality_value AS quality, U.field_mask_updated_value AS updated, TA.field_mask_tag_nid AS tag, F.uri AS uri 
+			$records = db_query('SELECT T.nid AS id, Q.field_mask_quality_value AS quality, U.field_mask_updated_value AS updated, TA.field_mask_tag_nid AS tag, F.uri AS uri, S.field_mask_segmentations_value AS seg
 			FROM {node} AS T
 			JOIN {field_data_field_mask_quality} AS Q
 			JOIN {field_data_field_mask_updated} AS U
@@ -1947,7 +1947,8 @@ function _wsmc_collection_delete($nid) {
 			JOIN {field_data_field_mask_image_reference} AS I
 			JOIN {field_data_field_mask_image} AS MI
 			JOIN {file_managed} AS F
-			ON  T.nid=Q.entity_id AND T.nid=U.entity_id AND T.nid=TA.entity_id AND T.nid=I.entity_id AND T.nid=MI.entity_id AND F.fid=MI.field_mask_image_fid
+			JOIN {field_data_field_mask_segmentations} AS S
+			ON  T.nid=Q.entity_id AND T.nid=U.entity_id AND T.nid=TA.entity_id AND T.nid=I.entity_id AND T.nid=MI.entity_id AND F.fid=MI.field_mask_image_fid AND S.entity_id = T.nid
  			WHERE I.field_mask_image_reference_nid = :id_image AND TA.field_mask_tag_nid = :id_textAnnotation AND U.field_mask_updated_value = :timestamp', array(':id_image' => $id_image, ':id_textAnnotation' => $id_textAnnotation, ':timestamp' => $timestamp));																									
 			
 			foreach ($records as $record) {
@@ -1958,6 +1959,8 @@ function _wsmc_collection_delete($nid) {
 				$img['quality'] = $record->quality;
 				$img['updated'] = $record->updated;
 				$img['mask_tag'] = $record->tag;
+				$img['segmentations'] = $record->seg;
+				
   				return $img;
   			} 
 
@@ -1979,6 +1982,7 @@ function _wsmc_mask_create($node) {
 		$updated = isset($node['updated']) ? $node['updated'] : '';
 		$mask_image = isset($node['mask_image']) ? $node['mask_image'] : '';
 		$mask_tag = isset($node['mask_tag']) ? $node['mask_tag'] : '';
+		$segmentations = isset($node['segmentations']) ? $node['segmentations'] : '';
 		
 		//decode image
 		$base64image = str_replace(' ','+',$base64image);
@@ -2012,6 +2016,8 @@ function _wsmc_mask_create($node) {
 			$newNode->field_mask_updated['und'][0]['value'] = $updated;
 			$newNode->field_mask_image_reference['und'][0]['nid'] = $mask_image;
 			$newNode->field_mask_tag['und'][0]['nid'] = $mask_tag;
+			$newNode->field_mask_segmentations['und'][0]['value'] = $segmentations;
+			
 			// Save the node.
 	    	node_submit($newNode);  
 	    	node_save($newNode); 
@@ -2022,6 +2028,91 @@ function _wsmc_mask_create($node) {
 			$output['error'] = t(print_error_string('not_valid','File'));
 		}
 	return (object)$output;
+}
+
+/**
+ * Callback for updating mask object.
+ *
+ * @param int $id_mask
+ * @param object $node
+ */
+function _wsmc_mask_update($id_mask, $node){
+
+	global $user;
+	
+  	//Verifico l'id del task
+  	if(is_numeric($id_mask)){
+
+  		$result=db_query('SELECT field_mask_image_fid
+				FROM {field_data_field_mask_image} 
+				WHERE entity_id= :id', array(':id' => $id_mask));
+		
+    	foreach($result AS $key){
+    		$mask=$key;
+    	}
+		
+	
+    	if(! isset($mask)){
+      		$output['error'] = t(print_error_string('not_found','id mask'));
+      		return $output;
+    	}
+		
+  	}else{
+    	$output['error'] = t(print_error_string('not_valid','id mask'));
+    	return $output;
+  	}
+
+		//retrieve parameters
+		$node = _services_arg_value($node, 'node');
+		$base64image = isset($node['base64image']) ? $node['base64image'] : '';
+		$quality = isset($node['quality']) ? $node['quality'] : '';
+		$updated = isset($node['updated']) ? $node['updated'] : '';
+		$segmentations = isset($node['segmentations']) ? $node['segmentations'] : '';
+
+		//decode image
+		$base64image = str_replace(' ','+',$base64image);
+		$image = base64_decode($base64image);
+		
+		//name of the mask image file as Mask_imageId_Tag_id
+		$result=db_query('SELECT I.field_mask_image_reference_nid AS imageId, T.field_mask_tag_nid AS tagId
+				FROM {field_data_field_mask_image_reference} AS I
+				JOIN {field_data_field_mask_tag} AS T
+				ON I.entity_id=T.entity_id
+				WHERE I.entity_id= :id', array(':id' => $id_mask));
+				
+    	foreach($result AS $key){
+    		$mask_image = $key -> imageId;
+			$mask_tag = $key -> tagId;
+    	}
+		
+		$baseName = 'Mask_'.$mask_image.'_'.$mask_tag.'.png';
+		
+		if($image !== FALSE){
+			
+			$destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
+			
+			$file = file_save_data($image, $destination, FILE_EXISTS_REPLACE);
+			if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
+			   $file->status = 1;
+			   $file = file_save($file);
+			}
+			
+			$node = node_load($id_mask);
+    
+			$node->field_mask_quality['und'][0]['value'] = $quality;
+			$node->field_mask_updated['und'][0]['value'] = $updated;
+			$node->field_mask_image['und'][0] = (array)$file;
+			$node->field_mask_segmentations['und'][0]['value'] = $segmentations;
+     
+			node_save($node);
+		
+			$output = $node;
+		}
+		else{
+			$output['error'] = t(print_error_string('not_valid','File'));
+		}
+    
+  	return $output;
 }
  
   /********************************************************************************

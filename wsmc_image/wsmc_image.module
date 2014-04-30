@@ -719,6 +719,29 @@ function wsmc_image_services_resources() {
                                   ),
                                 ),
                       ),
+				'update' => array(
+                    'help' => 'Update a mask',
+                    'file' => array('type' => 'inc', 'module' => 'wsmc_image', 'name' => 'wsmc_image'),
+                    'callback' => '_wsmc_mask_update',
+                    'access callback' => 'user_access',
+                    'access arguments' => array('access content'),
+                    'args' => array(
+                                array(
+                                  'name' => 'mask_id',
+                                  'type' => 'string',
+                                  'description' => 'The id of the session to get',
+                                  'source' => array('path' => 0),
+                                  'optional' => FALSE,
+                                ),
+                                array(
+                                  'name' => 'dati',
+                                  'type' => 'array',
+                                  'description' => 'Data to save',
+                                  'source' => 'data',
+                                  'optional' => TRUE,
+                                )
+                            ),
+                    ),
 			),
   );
 }
