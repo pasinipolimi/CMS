@@ -539,7 +539,13 @@ function save_annotation($image_id = NULL, $node)
 		// altrimente creo una nuova action
     $action = create_action($session_id,$cubrik_user_id,'annotation',NULL,$image_id,$content_id,$ta_id,NULL);
 	endif;
-	save_annotation_availableTags($image_id, $session_id, $language_id, $cubrik_user_id, $ta_val, $ta_name );
+
+	
+	$tag_exists=image_contains_tags($image_id, $ta_val, $lang_code);
+	if($tag_exists==0){
+       save_annotation_availableTags($image_id, $session_id, $language_id, $cubrik_user_id, $ta_val, $ta_name );
+	}
+	
 
 	return $action;
 

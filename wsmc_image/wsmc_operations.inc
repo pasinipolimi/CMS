@@ -34,6 +34,8 @@ task_retrieve_images ok
 image_exist ok
 task_exist ok
 _wsmc_quality_retrieve ok
+save_annotation_availableTags ok
+image_contains_tags ok
 
 */
 
@@ -505,13 +507,10 @@ function retrieveUTaskByTaskId($id_task){
 					WHERE f.field_utask_task_nid = :taskid', array(':taskid' => $id_task));
   // Result is returned as a iterable object that returns a stdClass object on each iteration
   foreach ($result AS $record) {
-
     $id[$record->task_id]['id'] = $record->task_id;
-	$id[$record->task_id]['status'] = $record->status;
-	$id[$record->task_id]['utaskType'] = $record->type;
-	
-	
-  }
+    $id[$record->task_id]['status'] = $record->status;
+    $id[$record->task_id]['utaskType'] = $record->type;
+	}
   return $id;
   
 }
@@ -741,6 +740,7 @@ function image_retrieve_available_tags($id){
 
 function image_contains_tags($id, $tag, $language){
   
+
   $content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
     FROM {field_data_field_content_name} as C 
     JOIN {field_data_field_content_textannotation} as A 
@@ -750,14 +750,15 @@ function image_contains_tags($id, $tag, $language){
     JOIN {field_data_field_annotation_language} AS L
     JOIN {field_data_field_iso_code} AS ISO
     ON A.entity_id=C.entity_id AND A.field_content_textannotation_nid=V.entity_id AND C.entity_id = ASS.contentid AND V.entity_id=L.entity_id AND C.entity_id = VA.entity_id AND ISO.entity_id=L.field_annotation_language_tid
-    WHERE C.field_content_name_value = 'availableTags' AND VA.field_content_valid_value = 1 AND imageid = :uid", array(':uid' => $id));
+    WHERE C.field_content_name_value = 'availableTags' AND VA.field_content_valid_value = 1 AND imageid = :uid AND  
+  field_annotation_value_value= :t AND ISO.field_iso_code_value=:l", array(':uid' => $id, ':t'=> $tag, ':l'=>$language));
 
   $tags = array();
   foreach ($content_query as $content_record) {
-    $tags[]=$content_record;    
+    return 1; 
   }
     
-  return $tags;
+  return 0;
 
 }
 
