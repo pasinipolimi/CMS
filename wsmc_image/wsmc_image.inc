@@ -1721,7 +1721,7 @@ function _wsmc_session_update($session_id, $node) {
  * 
  */
 
- function _wsmc_cubrikuser_index($id_application)
+function _wsmc_cubrikuser_index($id_application)
 {
     $query = "SELECT nid as nid FROM node AS n 
                     LEFT JOIN 
@@ -1735,9 +1735,32 @@ function _wsmc_session_update($session_id, $node) {
       //if($result->rowCount()==0) $output = t(print_error_string('not_valid','application id',$id_application));
      
      foreach ($result as $record) {
-         $cubrikuser_node = node_load($record->nid);
-        $cubrick_user =  print_user_data($record->nid);
-        $output[] = $cubrick_user;
+        $cubrikuser_node = node_load($record->nid);
+		$user = array();
+		// load user node
+		$user_node = node_load($record->nid);
+		// load user data
+		$user['cubrik_userid'] = $user_node->nid;
+		$user['app_id'] = $user_node->field_app_id['und'][0]['value'];		
+		$user['app_user_id'] = $user_node->field_app_user_id['und'][0]['value'];
+		
+		$plays = db_query('SELECT COUNT(S.entity_id) AS NumberOfPlays
+					  FROM {field_data_field_session_user} AS S
+					  WHERE S.field_session_user_nid = :id_user', array(':id_user' => $user_node->nid));
+		
+		foreach ($plays as $numPlays) {
+			$user['number_of_plays'] = $numPlays->NumberOfPlays;
+		}
+		
+		$annotations = db_query('SELECT COUNT(A.entity_id) AS NumberOfAnn
+					  FROM {field_data_field_action_user_id} AS A
+					  WHERE A.field_action_user_id_nid = :id_user', array(':id_user' => $user_node->nid));
+		
+		foreach ($annotations as $numAnn) {
+			$user['number_of_annotations'] = $numAnn->NumberOfAnn;
+		}
+ 
+        $output[] = $user;
      }
      
      return $output;
