@@ -441,10 +441,6 @@ function save_annotation($image_id = NULL, $node)
         return $output;
     endif;
 
-    //$control = _wsmc_cubrikuser_index($app_id);
-
-    // if application not exists return an error string
-    //if(is_string($control)) return $control;
     
     // get a cubrik_user_id
     $cubrik_user_id = process_cubrik_user($app_id,$user_id);
@@ -455,7 +451,7 @@ function save_annotation($image_id = NULL, $node)
         return $output;
     endif;
 
-
+*/
     
 	$control = session_verify($session_id);
 
@@ -463,7 +459,7 @@ function save_annotation($image_id = NULL, $node)
 		$output['error'] = $control;
 		return $output;
 	endif; 
-	*/	
+		
 
 	//verify the user id
  /*   if(!verify_node_type($user_id,'user')):
@@ -775,10 +771,10 @@ function save_mediasegment($image_id = NULL, $node){
 
     //verify if the image is an image
      
-    if(!verify_node_type($image_id,'image')):
-        $output['error'] = t(print_error_string('not_valid','image id',$image_id));
-        return $output;
-    endif;
+    //if(!verify_node_type($image_id,'image')):
+    //    $output['error'] = t(print_error_string('not_valid','image id',$image_id));
+    //    return $output;
+    //endif;
 
     $points = array();
     

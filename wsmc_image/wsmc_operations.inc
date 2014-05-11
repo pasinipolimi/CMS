@@ -317,7 +317,7 @@ function add_new_content($content_type,$img_id,$annotation_reff=NULL,$points=NUL
 
     //$node->field_content_id['und'][0]['value'] = $content_id;
 	
-	$node->field_content_valid['und'][0]['value'] = 1;
+	  $node->field_content_valid['und'][0]['value'] = 1;
         
     node_save($node);
     
@@ -691,28 +691,15 @@ function session_retrieve_actions($id){
 
 function session_verify($session_id)
 {
-	$res=db_query('SELECT N.nid, field_session_endts_value AS end
-FROM {node} AS N
-LEFT JOIN {field_data_field_session_endts} AS E ON N.nid = :id', array(':id' => $session_id));
+	$res=db_query('SELECT N.nid
+                  FROM {node} AS N
+                  WHERE N.nid = :id', array(':id' => $session_id));
 
   foreach($res AS $key){
-    if(!isset($key->end)){
-      //non finita, va tutto bene
       return 1;
-    } else{
-      $output = t('Session id '.$session_id.' is closed');
-      return $output;
-    }    
   }
   $output = t('Session id '.$session_id.' does not exist');
   return $output;
-
-  //foreach($res AS $key){
-  //      $output = t('Session id '.$session_id.' is closed');
-  //      return $output;
-  //}
-
-  //return 1;
 }
 
 
@@ -740,6 +727,8 @@ function image_retrieve_available_tags($id){
 
 function image_contains_tags($id, $tag, $language){
   
+ 
+ 
 
   $content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
     FROM {field_data_field_content_name} as C 
