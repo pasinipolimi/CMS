@@ -642,12 +642,12 @@ function save_segmentation($image_id = NULL, $node){
 	// control the ta_id
 	
 	// if we pass the ta_val
-	//if(empty($ta_id)):	
+	if(empty($ta_id)):	
 		// find if this kind of the ta value is presented already
-		//$ta_id = get_annotation_id($ta_val,$ta_name,$language_id);
+		$ta_id = get_annotation_id($ta_val,$ta_name,$language_id);
 		// if the value was not found we insert a new annotation
-    	//if($ta_id==0) $ta_id = insert_new_annotation($ta_val,$language_id,$ta_name);
-	//endif;
+    	if($ta_id==0) $ta_id = insert_new_annotation($ta_val,$language_id,$ta_name);
+	endif;
 	
 
 
