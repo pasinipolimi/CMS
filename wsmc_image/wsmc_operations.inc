@@ -755,7 +755,12 @@ function image_contains_tags($id, $tag, $language){
 
 function image_retrieve_tags($id){
 
-  	$content_query = db_query("SELECT entity_id AS id FROM textannotation WHERE imageid = :uid", array(':uid' => $id));
+  	$content_query = db_query("SELECT T.entity_id AS id, A.field_annotation_value_value as annotation_value
+								FROM textannotation AS T
+								JOIN {field_data_field_content_textannotation} AS C
+								JOIN {field_data_field_annotation_value} AS A
+								ON T.entity_id = C.entity_id AND C.field_content_textannotation_nid = A.entity_id
+								WHERE imageid = :uid", array(':uid' => $id));
 
 	$tags = array();
     foreach ($content_query as $content_record) {
