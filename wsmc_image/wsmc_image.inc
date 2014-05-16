@@ -1250,41 +1250,61 @@ function _wsmc_utask_retrieve($id_utask){
 	return $output;
  }
  
- function _wsmc_content_update($id_content, $invalidate){
+ function _wsmc_content_update($id_content, $invalidate, $node){
   	
   	//Verifico l'id del content
   	if(is_numeric($id_content)){
-
-  		$result=db_query('SELECT field_content_valid_value AS status , entity_id AS content_id
-				FROM {field_data_field_content_valid} WHERE entity_id= :id', array(':id' => $id_content));
+		
+  		$result=db_query('SELECT field_content_name_value
+				FROM {field_data_field_content_name} WHERE entity_id= :id', array(':id' => $id_content));
     	foreach($result AS $key){
-    		$task=$key;
+    		$cont=$key;
     	}
-
-    	if(! isset($task)){
+		
+    	if(! isset($cont)){
       		$output['error'] = t(print_error_string('not_valid','id content'));
       		return $output;
-    	}else{
-      		//Se il content è già not valid imposto l'errore
-      		if($task->status == 0)  {
-      			$output['error'] = t('Content already invalidated');
-      			return $output;
-      		};
     	}
+
   	}else{
     	$output['error'] = t(print_error_string('not_valid','id content'));
     	return $output;
   	}
 
- 	//Verifico che la stringa passata sia invalidate
-  	if($invalidate != 'invalidate') {
-  		$output['error'] = t(print_error_string('not_valid','invalidate'));
-  		return $output;
+ 	
+  	if(!empty($invalidate)){
+
+		//Verifico che la stringa passata sia invalidate
+		if($invalidate == 'invalidate') {
+		
+			//Se il content è già not valid imposto l'errore
+			$result=db_query('SELECT field_content_valid_value AS status
+				FROM {field_data_field_content_valid} WHERE entity_id= :id', array(':id' => $id_content));
+			foreach($result AS $key){
+				$task=$key;
+			}
+			if($task->status == 0)  {
+				$output['error'] = t('Content already invalidated');
+				return $output;
+			};
+			$res=db_query('UPDATE {field_data_field_content_valid} SET field_content_valid_value=0 WHERE entity_id= :id', array(':id' => $id_content));
+			$output[] = t('Content properly invalidated');
+		}
+		else{
+			$output['error'] = t(print_error_string('not_valid','invalidate'));
+			return $output;
+		}
+
+  	}
+	
+	if(!empty($node)){
+		$quality = isset($node['quality']) ? $node['quality'] : '';
+		$content = node_load($id_content);
+		$content->field_content_quality['und'][0]['value'] = $quality;
+		node_save($content);	
+		$output = $content;
   	}
   	
-  	$res=db_query('UPDATE {field_data_field_content_valid} SET field_content_valid_value=0 WHERE entity_id= :id', array(':id' => $id_content));
-   	$output[] = t('Content properly invalidated');
-    
   	return $output;
 }
 
