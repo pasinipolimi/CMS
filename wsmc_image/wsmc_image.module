@@ -299,7 +299,7 @@ function wsmc_image_services_resources() {
                                 array(
                                   'name' => 'session_id',
                                   'type' => 'string',
-                                  'description' => 'The id of the session to get',
+                                  'description' => 'The id of the session to update',
                                   'source' => array('path' => 0),
                                   'optional' => FALSE,
                                 ),

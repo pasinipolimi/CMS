@@ -664,7 +664,7 @@ function session_retrieve_actions($id){
 
 	$res_acts=db_query('SELECT *
 						FROM  {field_data_field_session_actions} AS S
-						JOIN {actionsV} AS A
+						JOIN {actionsv} AS A
 						ON A.action_id=S.field_session_actions_nid
 						WHERE S.entity_id= :nid', array(':nid' => $id)); 
 			

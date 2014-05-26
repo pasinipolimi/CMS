@@ -1390,6 +1390,7 @@ function _wsmc_action_index(){
  
 function _wsmc_action_retrieve ($id_action) {
     $action = node_load($id_action);
+    
     $output['id'] = $id_action;
     if(!$action){
 		$output['error'] = 'not found';
@@ -1573,12 +1574,10 @@ function _wsmc_session_retrieve ($id_session) {
  	$output=array();
 
     $records = db_query('SELECT ST.field_session_startts_value AS startTs, ET.field_session_endts_value AS endTs
-					FROM  {node} AS N
-					JOIN  {field_data_field_session_startts} AS ST
+					FROM {field_data_field_session_startts} AS ST
 					LEFT JOIN {field_data_field_session_endts} AS ET
-					ON ET.entity_id=N.nid
-					WHERE N.nid =  :s
-					AND ST.entity_id=N.nid', array(':s' => $id_session));
+					ON ST.entity_id=ET.entity_id
+					WHERE ST.entity_id =  :s', array(':s' => $id_session));
 
     foreach ($records as $record) {
     	$output['id'] = $id_session;
