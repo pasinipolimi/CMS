@@ -326,10 +326,15 @@ function _wsmc_image_index_light($collection, $limit, $select) {
 			$img['filename'] = $record->filename;
 			$content = array();
 
-			$content['availableTags'] = image_retrieve_available_tags($img['id']);
-			$content['tagging'] = image_retrieve_tags($img['id']);
-			$content['segmentation'] = image_retrieve_annotations($img['id']);
-	
+			if(isset($select) && $select=='light'){
+				$content['availableTags'] = image_retrieve_available_tags($img['id']);
+			} else {
+				$content['availableTags'] = image_retrieve_available_tags($img['id']);
+				$content['tagging'] = image_retrieve_tags($img['id']);
+				$content['segmentation'] = image_retrieve_annotations($img['id']);
+			}
+
+			
 			$img['descriptions'] = $content;
     
     		array_push($toReturn, $img);

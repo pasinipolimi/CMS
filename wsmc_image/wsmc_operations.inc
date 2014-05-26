@@ -725,11 +725,10 @@ function image_retrieve_available_tags($id){
 
 }
 
-function image_contains_tags($id, $tag, $language){
-  
- 
- 
 
+
+
+function image_contains_tags($id, $tag, $language){
   $content_query = db_query("SELECT A.entity_id AS id, field_annotation_value_value AS value, ISO.field_iso_code_value as lang
     FROM {field_data_field_content_name} as C 
     JOIN {field_data_field_content_textannotation} as A 
@@ -761,18 +760,23 @@ function image_retrieve_tags($id){
 								JOIN {field_data_field_annotation_value} AS A
 								ON T.entity_id = C.entity_id AND C.field_content_textannotation_nid = A.entity_id
 								WHERE imageid = :uid", array(':uid' => $id));
-
-	$tags = array();
+    $tags = array();
     foreach ($content_query as $content_record) {
-		$tags[]=$content_record;
-    	
+		  $tags[]=$content_record;
   	}
   	return $tags;
 }
 
 
 function image_retrieve_annotations($id){
-	$segmentations = db_query("SELECT entity_id AS id FROM {segmentation} WHERE imageid = :uid", array(':uid' => $id));
+	//$segmentations = db_query("SELECT entity_id AS id FROM {segmentation} WHERE imageid = :uid", array(':uid' => $id));
+
+  $segmentations = db_query("SELECT T.entity_id AS id, A.field_annotation_value_value as annotation_value
+                FROM {segmentation} AS T
+                JOIN {field_data_field_content_textannotation} AS C
+                JOIN {field_data_field_annotation_value} AS A
+                ON T.entity_id = C.entity_id AND C.field_content_textannotation_nid = A.entity_id
+                WHERE imageid = :uid", array(':uid' => $id));
 	$annot = array();
 	foreach ($segmentations as $segm) {
 			$annot[] = $segm;

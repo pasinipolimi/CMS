@@ -247,7 +247,7 @@ function wsmc_image_services_resources() {
                               array(
                                 'name' => 'select',
                                 'type' => 'string',
-                                'description' => 'all: returns all the attributes; id: returns a list of id',
+                                'description' => 'all: returns all the attributes; id: returns a list of id, light: returns only img info and available tags',
                                 'source' => array('param' => 'select'),
                                 'optional' => TRUE,
                               ),
