@@ -2024,7 +2024,7 @@ function _wsmc_mask_create($node) {
 			
 			$destination = 'public://images/'.$baseName; // a stream wrapper path where you want this image to reside on your file system including the desired filename
 			
-			$file = file_save_data($image, $destination, FILE_EXISTS_RENAME);
+			$file = file_save_data($image, $destination, FILE_EXISTS_REPLACE);
 			if (is_object($file)) { // if you get back a Drupal $file object, everything went as expected so make the status permenant
 			   $file->status = 1;
 			   $file = file_save($file);
