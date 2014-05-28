@@ -251,6 +251,13 @@ function wsmc_image_services_resources() {
                                 'source' => array('param' => 'select'),
                                 'optional' => TRUE,
                               ),
+                              array(
+                                'name' => 'policy',
+                                'type' => 'string',
+                                'description' => 'rnd: extract random images; mask_opt: first images with no annotations etc (only when both limit and collection are set)',
+                                'source' => array('param' => 'policy'),
+                                'optional' => TRUE,
+                              ),
                             ),
                   ),
     ),
