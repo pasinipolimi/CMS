@@ -281,16 +281,15 @@ function _wsmc_image_index_light($collection, $limit, $select, $policy) {
   			if(isset($limit)){
   				if($policy=='rnd'){
   					//scelgo a caso
-  					$query="SELECT field_collection_image_nid as id FROM {field_data_field_collection_image} ORDER BY RAND() LIMIT {$limit}";  		
+  					$query="SELECT field_collection_image_nid as id FROM {field_data_field_collection_image} AS C WHERE C.entity_id='{$collection} ORDER BY RAND() LIMIT {$limit}";  		
   				} else{
   					//scelgo quelle con meno annotazioni
-  					$query="SELECT field_collection_image_nid as id, imageid, COUNT(*) as count FROM field_data_field_collection_image AS COL
-						JOIN segmentation AS T
-                		JOIN field_data_field_content_textannotation AS C
-                		JOIN field_data_field_annotation_value AS A
-                		ON T.entity_id = C.entity_id AND C.field_content_textannotation_nid = A.entity_id AND COL.field_collection_image_nid=imageid
-						WHERE COL.entity_id='{$collection}'
-						GROUP BY imageid ORDER BY count LIMIT {$limit}";
+  					$query="SELECT id COUNT(T.entity_id) as count
+							FROM inmcallinfo AS I
+							LEFT JOIN segmentation AS T
+							ON  T.imageid=I.id
+							WHERE I.collection='{$collection}'
+							GROUP BY I.id ORDER BY {$limit}";
 
   					//$query="SELECT field_collection_image_nid as id FROM {field_data_field_collection_image} ORDER BY RAND() LIMIT {$limit}";  		
   				}
@@ -322,14 +321,12 @@ function _wsmc_image_index_light($collection, $limit, $select, $policy) {
 					$query="SELECT id, uri, width, height, filesize, filemime, filename FROM {field_data_field_collection_image} AS C JOIN {imginfo} AS I 
 							WHERE C.field_collection_image_nid=I.id	AND C.entity_id='{$collection}' ORDER BY RAND() LIMIT {$limit}";  		
 				} else {
-  					$query="SELECT id, uri, width, height, filesize, filemime, filename, COUNT(*) as count FROM field_data_field_collection_image AS COL
-						JOIN segmentation AS T
-                		JOIN field_data_field_content_textannotation AS C
-                		JOIN field_data_field_annotation_value AS A
-						JOIN imginfo AS I
-                		ON T.entity_id = C.entity_id AND C.field_content_textannotation_nid = A.entity_id AND COL.field_collection_image_nid=imageid AND COL.field_collection_image_nid=I.id
-						WHERE COL.entity_id='{$collection}'
-						GROUP BY imageid ORDER BY count LIMIT {$limit}"; 
+  					$query="SELECT id, uri, width, height, filesize, filemime, filename, COUNT(T.entity_id) as count
+							FROM inmcallinfo AS I
+							LEFT JOIN segmentation AS T
+							ON  T.imageid=I.id
+							WHERE I.collection='{$collection}'
+							GROUP BY I.id ORDER BY count LIMIT {$limit}"; 
 				}
   			} else {
 				$query="SELECT id, uri, width, height, filesize, filemime, filename FROM {field_data_field_collection_image} AS C JOIN {imginfo} AS I WHERE C.field_collection_image_nid=I.id	AND C.entity_id='{$collection}' ORDER BY RAND()";  		
